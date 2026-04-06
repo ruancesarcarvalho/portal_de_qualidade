@@ -175,7 +175,6 @@ function PerformanceBarChart({ data, isDark }) {
         {/* Bars */}
         <div className="relative flex-1 flex items-end justify-around gap-2 ml-8 h-full">
           {data.map((item, idx) => {
-            // Corrigido para só ficar azul se for EXATAMENTE a meta ou mais
             const isSuccess = item.score >= target;
             const barHeight = (item.score / maxScore) * 100;
             
@@ -264,13 +263,15 @@ export default function App() {
         supabaseClient.from('channels').select('*'),
         supabaseClient.from('indicators').select('*'),
         supabaseClient.from('questions').select('*'),
-        supabaseClient.from('evaluations').select('*'),
-        supabaseClient.from('evaluation_details').select('*')
+        supabaseClient.from('evaluations').select('*').order('date', { ascending: false }).limit(2000),
+        // Busca versão leve para estatísticas do dashboard, evitamos baixar as imagens globais
+        supabaseClient.from('evaluation_details').select('id, evaluation_id, question_id, answer, cp_validated').limit(15000)
       ]);
 
+      // Correção: Usando '==' para evitar problemas de tipo entre String/Int no mapeamento.
       const formattedEvals = keysToCamel(e.data || []).map(ev => ({
         ...ev,
-        details: keysToCamel(d.data || []).filter(det => det.evaluationId === ev.id)
+        details: keysToCamel(d.data || []).filter(det => det.evaluationId == ev.id)
       }));
 
       setDb({
@@ -286,6 +287,31 @@ export default function App() {
     } catch (err) {
       console.error(err);
       setLoading(false);
+    }
+  };
+
+  const handleShowReport = async (ev) => {
+    // Busca os detalhes COMPLETOS desta avaliação sob demanda (Lazy Load)
+    if (!supabaseClient) {
+      setSelectedEval(ev);
+      return;
+    }
+    try {
+      const { data, error } = await supabaseClient
+        .from('evaluation_details')
+        .select('*')
+        .eq('evaluation_id', ev.id);
+        
+      if (error) throw error;
+      
+      setSelectedEval({
+        ...ev,
+        details: keysToCamel(data || [])
+      });
+    } catch (error) {
+      console.error("Erro ao buscar detalhes da avaliação:", error);
+      alert("Houve um erro ao buscar os detalhes e imagens desta avaliação.");
+      setSelectedEval(ev); // Fallback
     }
   };
 
@@ -381,9 +407,9 @@ export default function App() {
         </header>
 
         <div id="content-container" className="px-8 py-10 max-w-[1400px] mx-auto no-print">
-          {activeTab === 'home' && <HomeView db={db} user={user} setActiveTab={setActiveTab} onShowReport={setSelectedEval} isDark={isDark} />}
+          {activeTab === 'home' && <HomeView db={db} user={user} setActiveTab={setActiveTab} onShowReport={handleShowReport} isDark={isDark} />}
           {activeTab === 'dashboard' && <DashboardView db={db} user={user} isDark={isDark} />}
-          {activeTab === 'histórico' && <HistoryView db={db} user={user} onShowReport={setSelectedEval} isDark={isDark} />}
+          {activeTab === 'histórico' && <HistoryView db={db} user={user} onShowReport={handleShowReport} isDark={isDark} />}
           {activeTab === 'new' && isAdmin && <NewAuditView db={db} supabaseClient={supabaseClient} onComplete={() => { fetchData(); setActiveTab('histórico'); }} isDark={isDark} />}
           {activeTab === 'settings' && isAdmin && <ManagementView db={db} supabaseClient={supabaseClient} fetchData={fetchData} isDark={isDark} />}
         </div>
@@ -921,8 +947,44 @@ function NewAuditView({ db, supabaseClient, onComplete, isDark }) {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (event) => {
-      const currentMedia = answers[qId]?.media || [];
-      handleAnswer(qId, answers[qId]?.value, answers[qId]?.cp, answers[qId]?.comment, [...currentMedia, { url: event.target.result, name: file.name }]);
+      const img = new Image();
+      img.onload = () => {
+        // Redimensiona a imagem para evitar estouro de Payload no banco
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 800;
+        const MAX_HEIGHT = 800;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Comprime para JPG reduzindo a qualidade e o peso
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+
+        setAnswers(prev => {
+          const currentMedia = prev[qId]?.media || [];
+          return {
+            ...prev,
+            [qId]: { ...prev[qId], media: [...currentMedia, { url: dataUrl, name: file.name }] }
+          };
+        });
+      };
+      img.src = event.target.result;
     };
     reader.readAsDataURL(file);
   };
@@ -960,10 +1022,23 @@ function NewAuditView({ db, supabaseClient, onComplete, isDark }) {
     setSubmitting(true);
     const finalScore = calculateScore();
     const evaluator = JSON.parse(localStorage.getItem('vq_user')).name;
-    const { data: newEval } = await supabaseClient.from('evaluations').insert({ store_id: config.storeId, channel_id: db.stores.find(s => s.id == config.storeId).channelId, evaluator, score: finalScore, date: config.date }).select().single();
+    const { data: newEval, error: evalError } = await supabaseClient.from('evaluations').insert({ store_id: config.storeId, channel_id: db.stores.find(s => s.id == config.storeId).channelId, evaluator, score: finalScore, date: config.date }).select().single();
+    
+    if (evalError) {
+      alert("Erro ao criar a avaliação principal: " + evalError.message);
+      setSubmitting(false);
+      return;
+    }
+
     if (newEval) {
       const details = Object.keys(answers).map(qId => ({ evaluation_id: newEval.id, question_id: qId, answer: answers[qId].value, comment: answers[qId].comment || "", cp_validated: answers[qId].cp || false, media: answers[qId].media || [] }));
-      await supabaseClient.from('evaluation_details').insert(details);
+      
+      if (details.length > 0) {
+        const { error: detError } = await supabaseClient.from('evaluation_details').insert(details);
+        if (detError) {
+          alert("Alerta: A auditoria foi salva, mas ocorreu um erro ao salvar as respostas ou imagens (podem estar muito pesadas). Erro: " + detError.message);
+        }
+      }
       onComplete();
     }
     setSubmitting(false);
@@ -1063,30 +1138,44 @@ function StatCard({ title, value, icon, subtitle, isDark }) {
   ); 
 }
 
+// --- VISUALIZAÇÃO DE DOSSIÊ MELHORADA E CORRIGIDA ---
+
 function ReportContent({ evaluation, db, isDark = true, onExpandImage }) {
   const store = db.stores.find(s => s.id == evaluation.storeId);
   const manager = db.managers.find(m => m.id == store?.managerId);
   const textColor = isDark ? 'text-white' : 'text-gray-900';
-  const borderColor = isDark ? 'border-white/5' : 'border-gray-100';
-  const bgCard = isDark ? 'bg-white/5' : 'bg-gray-50';
-  
+  const borderColor = isDark ? 'border-white/5' : 'border-gray-200';
+  const bgCard = isDark ? 'bg-white/5' : 'bg-white';
+
+  // Agrupa os detalhes da avaliação por Indicador para uma visualização limpa
+  const groupedDetails = {};
+  evaluation.details?.forEach(det => {
+    const q = db.questions.find(q => q.id == det.questionId);
+    const indId = q ? q.indicatorId : 'unknown';
+    if (!groupedDetails[indId]) {
+      groupedDetails[indId] = [];
+    }
+    groupedDetails[indId].push({ det, q: q || { text: 'Pergunta não encontrada ou removida', severity: 'neutral' } });
+  });
+
   return (
     <div className={`p-8 sm:p-12 space-y-10 ${textColor} text-left transition-colors`}>
+      {/* Cabeçalho do Dossiê */}
       <div className={`grid grid-cols-2 gap-8 border-b ${borderColor} pb-8 text-left`}>
         <div className="space-y-4 text-left">
           <div>
             <p className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Unidade</p>
-            <p className="text-xl font-black uppercase italic text-blue-500">{store?.name}</p>
+            <p className="text-xl font-black uppercase italic text-blue-500">{store?.name || 'Desconhecida'}</p>
           </div>
           <div>
-            <p className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Data</p>
+            <p className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Data da Auditoria</p>
             <p className="text-lg font-black">{new Date(evaluation.date).toLocaleDateString('pt-BR')}</p>
           </div>
         </div>
         <div className="space-y-4 text-right">
           <div>
-            <p className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Gestora</p>
-            <p className="text-lg font-black">{manager?.name || 'N/A'}</p>
+            <p className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Gestora Responsável</p>
+            <p className="text-lg font-black">{manager?.name || 'Não atribuída'}</p>
           </div>
           <div>
             <p className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Avaliador</p>
@@ -1094,54 +1183,106 @@ function ReportContent({ evaluation, db, isDark = true, onExpandImage }) {
           </div>
         </div>
       </div>
+
+      {/* Cartões de Pontuação */}
       <div className="grid grid-cols-3 gap-6">
-        <div className={`${bgCard} p-6 rounded-2xl text-center border ${borderColor}`}>
+        <div className={`${bgCard} p-6 rounded-2xl text-center border ${borderColor} shadow-sm`}>
           <p className="text-[10px] text-gray-500 font-black uppercase mb-1">Score Final</p>
-          <p className={`text-5xl font-black italic ${evaluation.score >= 80 ? 'text-green-500' : 'text-red-500'}`}>{Number(evaluation.score).toFixed(2)}%</p>
+          <p className={`text-5xl font-black italic ${evaluation.score >= 80 ? 'text-green-500' : 'text-red-500'}`}>
+            {Number(evaluation.score).toFixed(2)}%
+          </p>
         </div>
-        <div className={`${bgCard} p-6 rounded-2xl text-center border ${borderColor}`}>
+        <div className={`${bgCard} p-6 rounded-2xl text-center border ${borderColor} shadow-sm`}>
           <p className="text-[10px] text-gray-500 font-black uppercase mb-1">Status</p>
           <p className="text-lg font-black uppercase mt-2">{evaluation.score >= 80 ? 'Aprovado' : 'Reprovado'}</p>
         </div>
-        <div className={`${bgCard} p-6 rounded-2xl text-center border ${borderColor}`}>
+        <div className={`${bgCard} p-6 rounded-2xl text-center border ${borderColor} shadow-sm`}>
           <p className="text-[10px] text-gray-500 font-black uppercase mb-1">Deduções</p>
           <p className="text-lg font-black uppercase mt-2">{(100 - evaluation.score).toFixed(2)} pts</p>
         </div>
       </div>
-      <div className="space-y-6 text-left">
-        <h4 className="text-lg font-black uppercase italic border-l-4 border-blue-600 pl-4 text-left">Checklist Detalhado</h4>
-        <div className="space-y-4">
-          {evaluation.details?.map(det => {
-            const q = db.questions.find(q => q.id == det.questionId); if (!q) return null;
-            let mediaArray = []; try { if (Array.isArray(det.media)) mediaArray = det.media; else if (typeof det.media === 'string') mediaArray = JSON.parse(det.media); } catch(e) {}
-            return (
-              <div key={det.id} className={`${bgCard} border ${borderColor} rounded-xl p-6 break-inside-avoid shadow-sm`}>
-                <div className="flex justify-between items-start gap-4 mb-2">
-                  <p className="font-bold text-lg leading-tight">{q.text}</p>
-                  <Badge type={det.answer === 'conforme' ? 'success' : det.answer === 'inconforme' ? 'danger' : 'neutral'}>{det.answer === 'na' ? 'N/A' : det.answer}</Badge>
-                </div>
-                {det.comment && (
-                  <div className={`mt-4 ${isDark ? 'bg-blue-600/5' : 'bg-blue-50'} p-4 rounded-xl border ${isDark ? 'border-blue-600/10' : 'border-blue-200'} flex gap-3 items-start`}>
-                    <Info size={16} className="text-blue-500 shrink-0 mt-0.5"/>
-                    <p className="text-sm italic">"{det.comment}"</p>
-                  </div>
-                )}
-                {mediaArray && mediaArray.length > 0 && (
-                  <div className="mt-4 flex flex-wrap gap-3">
-                    {mediaArray.map((img, i) => (
-                      <div key={i} className="relative group/img cursor-zoom-in" onClick={() => onExpandImage(img.url || img)}>
-                        <img src={typeof img === 'string' ? img : img.url} className={`w-24 h-24 object-cover rounded-lg border ${isDark ? 'border-white/10' : 'border-gray-200'} shadow-md hover:border-blue-500 transition-all`} />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 flex items-center justify-center rounded-lg transition-opacity">
-                          <Maximize2 size={16} className="text-white" />
+
+      {/* Checklist Detalhado Agrupado */}
+      <div className="space-y-8 text-left">
+        <h4 className="text-xl font-black uppercase italic border-l-4 border-blue-600 pl-4 text-left">Checklist Detalhado</h4>
+        
+        {Object.keys(groupedDetails).length === 0 && (
+          <p className="text-gray-500 italic">Nenhum detalhe foi encontrado para esta auditoria.</p>
+        )}
+
+        {Object.keys(groupedDetails).map(indId => {
+          const indicator = db.indicators.find(i => i.id == indId);
+          const indName = indicator ? indicator.name : 'Outros / Removidos';
+
+          return (
+            <div key={indId} className="space-y-4 mt-6">
+              <h5 className={`text-lg font-black italic uppercase ${isDark ? 'text-blue-400' : 'text-blue-600'} border-b ${borderColor} pb-2`}>
+                {indName}
+              </h5>
+
+              <div className="space-y-4">
+                {groupedDetails[indId].map(({det, q}) => {
+                  
+                  // Conversão Robusta de Mídia
+                  let mediaArray = [];
+                  try {
+                    if (Array.isArray(det.media)) {
+                      mediaArray = det.media;
+                    } else if (typeof det.media === 'string') {
+                      if (det.media.startsWith('[')) {
+                        mediaArray = JSON.parse(det.media);
+                      } else if (det.media.trim() !== '') {
+                        mediaArray = [{ url: det.media }];
+                      }
+                    }
+                  } catch (e) {
+                    console.error("Erro ao parsear media", e);
+                  }
+
+                  return (
+                    <div key={det.id} className={`${bgCard} border ${borderColor} rounded-xl p-6 break-inside-avoid shadow-sm`}>
+                      <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
+                        <p className="font-bold text-lg leading-tight flex-1">{q.text}</p>
+                        
+                        <div className="flex items-center gap-2 shrink-0">
+                          {/* Verifica CP validado */}
+                          {det.cpValidated && (
+                            <Badge type="warning">CP Validado</Badge>
+                          )}
+                          <Badge type={det.answer === 'conforme' ? 'success' : det.answer === 'inconforme' ? 'danger' : 'neutral'}>
+                            {det.answer === 'na' ? 'N/A' : det.answer}
+                          </Badge>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
+
+                      {/* Caixa de Comentários Aprimorada */}
+                      {det.comment && (
+                        <div className={`mt-4 ${isDark ? 'bg-blue-600/10' : 'bg-blue-50'} p-4 rounded-xl border ${isDark ? 'border-blue-600/20' : 'border-blue-200'} flex gap-3 items-start`}>
+                          <Info size={18} className="text-blue-500 shrink-0 mt-0.5"/>
+                          <p className="text-sm italic font-medium leading-relaxed">"{det.comment}"</p>
+                        </div>
+                      )}
+
+                      {/* Exibição de Mídias/Imagens */}
+                      {mediaArray && mediaArray.length > 0 && (
+                        <div className="mt-4 flex flex-wrap gap-3">
+                          {mediaArray.map((img, i) => (
+                            <div key={i} className="relative group/img cursor-zoom-in" onClick={() => onExpandImage(img.url || img)}>
+                              <img src={typeof img === 'string' ? img : img.url} className={`w-28 h-28 object-cover rounded-lg border ${isDark ? 'border-white/10' : 'border-gray-200'} shadow-md hover:border-blue-500 transition-all`} />
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 flex items-center justify-center rounded-lg transition-opacity">
+                                <Maximize2 size={20} className="text-white" />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
