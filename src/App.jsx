@@ -50,7 +50,7 @@ import {
 const SUPABASE_URL = 'https://tsjyqcrqwssepnjipwhw.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRzanlxY3Jxd3NzZXBuamlwd2h3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2MjI4ODksImV4cCI6MjA4MzE5ODg4OX0.v9sJm0MqV4rPZ0Vzvz-97yZFdvCKgksiTxN8dGg0x7M';
 
-// Constante de Meta Ajustada para 100%
+// Constante de Meta
 const META_GLOBAL = 100; 
 
 // --- UTILITÁRIOS ---
@@ -72,16 +72,22 @@ const getPenaltyPoints = (severity) => {
   return points[severity] || 0;
 };
 
-// --- COMPONENTES DE UI BÁSICOS ---
+// --- COMPONENTES DE UI BASE (DESIGN SYSTEM) ---
 
 const Button = ({ children, variant = 'primary', className = '', isDark = true, ...props }) => {
-  const base = "px-6 py-2 rounded font-bold transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50";
+  const base = "px-4 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none";
   const variants = {
-    primary: "bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-900/20",
-    secondary: isDark ? "bg-white text-black hover:bg-gray-200" : "bg-black text-white hover:bg-gray-800",
-    outline: isDark ? "bg-transparent border border-gray-500 text-white hover:bg-white/10" : "bg-transparent border border-gray-300 text-gray-800 hover:bg-black/5",
-    ghost: isDark ? "bg-transparent text-gray-400 hover:text-white" : "bg-transparent text-gray-500 hover:text-black",
-    danger: "bg-red-600 text-white hover:bg-red-700"
+    primary: "bg-blue-600 text-white hover:bg-blue-700 shadow-sm",
+    secondary: isDark 
+      ? "bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700" 
+      : "bg-white text-slate-700 hover:bg-slate-50 border border-slate-300 shadow-sm",
+    outline: isDark 
+      ? "bg-transparent border border-slate-600 text-slate-300 hover:bg-slate-800" 
+      : "bg-transparent border border-slate-300 text-slate-700 hover:bg-slate-50",
+    ghost: isDark 
+      ? "bg-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/50" 
+      : "bg-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100",
+    danger: "bg-red-600 text-white hover:bg-red-700 shadow-sm"
   };
   return (
     <button className={`${base} ${variants[variant]} ${className}`} {...props}>
@@ -91,50 +97,50 @@ const Button = ({ children, variant = 'primary', className = '', isDark = true, 
 };
 
 const Card = ({ children, className = "", isDark = true }) => (
-  <div className={`${isDark ? 'bg-[#181818] border-white/5' : 'bg-white border-gray-200'} rounded-lg overflow-hidden border transition-all duration-300 shadow-xl ${className}`}>
+  <div className={`${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} rounded-xl overflow-hidden border shadow-sm ${className}`}>
     {children}
   </div>
 );
 
-const Badge = ({ children, type = 'neutral' }) => {
+const Badge = ({ children, type = 'neutral', isDark = true }) => {
   const types = {
-    success: "bg-green-500/20 text-green-500 border border-green-500/30",
-    warning: "bg-yellow-500/20 text-yellow-600 border border-yellow-500/30",
-    danger: "bg-red-500/20 text-red-500 border border-red-500/30",
-    neutral: "bg-gray-500/20 text-gray-500 border border-gray-500/30",
-    primary: "bg-blue-500/20 text-blue-500 border border-blue-500/30"
+    success: isDark ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-emerald-50 text-emerald-700 border-emerald-200",
+    warning: isDark ? "bg-amber-500/10 text-amber-400 border-amber-500/20" : "bg-amber-50 text-amber-700 border-amber-200",
+    danger: isDark ? "bg-red-500/10 text-red-400 border-red-500/20" : "bg-red-50 text-red-700 border-red-200",
+    neutral: isDark ? "bg-slate-800 text-slate-400 border-slate-700" : "bg-slate-100 text-slate-600 border-slate-200",
+    primary: isDark ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : "bg-blue-50 text-blue-700 border-blue-200"
   };
-  return <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${types[type]}`}>{children}</span>;
+  return <span className={`px-2.5 py-1 rounded-md text-xs font-medium border ${types[type]}`}>{children}</span>;
 };
 
 // --- COMPONENTES DA SIDEBAR ---
 
 function NavItem({ icon, label, active, onClick, collapsed, isDark = true }) {
+  const activeLight = "bg-blue-50 text-blue-700 font-semibold";
+  const inactiveLight = "text-slate-600 hover:bg-slate-100 hover:text-slate-900";
+  const activeDark = "bg-blue-500/10 text-blue-400 font-semibold";
+  const inactiveDark = "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200";
+
+  const stateClass = active 
+    ? (isDark ? activeDark : activeLight) 
+    : (isDark ? inactiveDark : inactiveLight);
+
   return (
     <div className="relative group flex justify-center">
       <button
         onClick={onClick}
         className={`
-          flex items-center transition-all duration-300 rounded-xl
-          ${collapsed 
-            ? 'w-10 h-10 justify-center' 
-            : 'w-full p-4 gap-4'}
-          ${active 
-            ? 'bg-blue-600 text-white font-black shadow-lg shadow-blue-600/30 scale-105' 
-            : `${isDark ? 'text-gray-500 hover:bg-white/5 hover:text-white' : 'text-gray-500 hover:bg-black/5 hover:text-black'}`}
+          flex items-center transition-colors duration-200 rounded-lg text-sm
+          ${collapsed ? 'w-10 h-10 justify-center' : 'w-full px-3 py-2.5 gap-3'}
+          ${stateClass}
         `}
       >
         <span className="shrink-0">{icon}</span>
-        {!collapsed && (
-          <span className="text-sm font-bold uppercase tracking-tight italic truncate transition-all duration-300">
-            {label}
-          </span>
-        )}
+        {!collapsed && <span className="truncate">{label}</span>}
       </button>
       
       {collapsed && (
-        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-4 px-3 py-1.5 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300 whitespace-nowrap z-[100] shadow-2xl">
-          <div className="absolute left-[-4px] top-1/2 -translate-y-1/2 w-2 h-2 bg-blue-600 rotate-45"></div>
+        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-2.5 py-1.5 bg-slate-800 text-white text-xs font-medium rounded-md opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-[100] shadow-lg">
           {label}
         </div>
       )}
@@ -142,14 +148,14 @@ function NavItem({ icon, label, active, onClick, collapsed, isDark = true }) {
   );
 }
 
-// --- GRÁFICO PERFORMANCE MELHORADO ---
+// --- GRÁFICO PERFORMANCE ---
 
 function PerformanceBarChart({ data, isDark }) {
   const maxScore = 100;
   const target = META_GLOBAL;
   
   return (
-    <div className="w-full overflow-x-auto no-scrollbar pb-10">
+    <div className="w-full overflow-x-auto no-scrollbar pb-6">
       <div 
         className="relative h-64 flex items-end justify-start px-2 pt-10" 
         style={{ minWidth: `${Math.max(data.length * 60, 600)}px` }}
@@ -158,22 +164,22 @@ function PerformanceBarChart({ data, isDark }) {
         <div className="absolute inset-x-0 bottom-0 h-full flex flex-col justify-between pointer-events-none">
           {[100, 75, 50, 25, 0].map(val => (
             <div key={val} className="w-full flex items-center gap-2">
-              <span className="text-[9px] font-black text-gray-500 w-6">{val}%</span>
-              <div className={`flex-1 h-px ${isDark ? 'bg-white/5' : 'bg-gray-100'}`}></div>
+              <span className={`text-xs font-medium w-8 text-right ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{val}%</span>
+              <div className={`flex-1 h-px ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`}></div>
             </div>
           ))}
         </div>
 
         {/* Meta Line */}
         <div 
-          className="absolute left-8 right-0 border-t-2 border-dashed border-emerald-500/40 z-10 flex items-center"
+          className="absolute left-10 right-0 border-t border-dashed border-emerald-500/60 z-10 flex items-center"
           style={{ bottom: `${target}%` }}
         >
-          <span className="text-[8px] bg-emerald-500 text-white px-1.5 py-0.5 font-black rounded-r-md -ml-8">META {target}%</span>
+          <span className="text-[10px] font-semibold bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 px-2 py-0.5 rounded-full -ml-10">Meta {target}%</span>
         </div>
 
         {/* Bars */}
-        <div className="relative flex-1 flex items-end justify-around gap-2 ml-8 h-full">
+        <div className="relative flex-1 flex items-end justify-around gap-2 ml-10 h-full">
           {data.map((item, idx) => {
             const isSuccess = item.score >= target;
             const barHeight = (item.score / maxScore) * 100;
@@ -181,24 +187,23 @@ function PerformanceBarChart({ data, isDark }) {
             return (
               <div key={idx} className="flex-1 flex flex-col items-center group relative h-full justify-end" style={{ maxWidth: '40px' }}>
                 {/* Tooltip */}
-                <div className={`absolute -top-10 opacity-0 group-hover:opacity-100 transition-all duration-200 z-30 pointer-events-none`}>
-                  <div className={`${isSuccess ? 'bg-blue-600' : 'bg-red-600'} text-white text-[10px] font-black px-2 py-1 rounded shadow-xl whitespace-nowrap mb-2 relative`}>
+                <div className="absolute -top-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-30 pointer-events-none">
+                  <div className={`${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-800'} border text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow-lg whitespace-nowrap mb-2 relative`}>
                     {item.score.toFixed(1)}%
-                    <div className={`absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 ${isSuccess ? 'bg-blue-600' : 'bg-red-600'} rotate-45`}></div>
                   </div>
                 </div>
 
                 {/* Bar Container */}
-                <div className={`w-full rounded-t-lg relative transition-all duration-700 ${isDark ? 'bg-white/5' : 'bg-gray-100'} h-full flex flex-col justify-end`}>
+                <div className={`w-full rounded-t-md relative transition-all duration-700 ${isDark ? 'bg-slate-800/50' : 'bg-slate-100'} h-full flex flex-col justify-end`}>
                   <div 
-                    className={`w-full rounded-t-lg transition-all duration-1000 ease-out shadow-lg ${isSuccess ? 'bg-gradient-to-t from-blue-700 to-blue-400' : 'bg-gradient-to-t from-red-700 to-red-400'}`}
+                    className={`w-full rounded-t-md transition-all duration-1000 ease-out ${isSuccess ? 'bg-blue-500' : 'bg-slate-400'}`}
                     style={{ height: `${barHeight}%` }}
                   />
                 </div>
 
                 {/* Label */}
                 <div className="absolute top-[105%] rotate-45 origin-top-left whitespace-nowrap">
-                  <span className={`text-[9px] font-black uppercase ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                  <span className={`text-[10px] font-medium uppercase ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                     {item.code}
                   </span>
                 </div>
@@ -264,11 +269,9 @@ export default function App() {
         supabaseClient.from('indicators').select('*'),
         supabaseClient.from('questions').select('*'),
         supabaseClient.from('evaluations').select('*').order('date', { ascending: false }).limit(2000),
-        // Busca versão leve para estatísticas do dashboard, evitamos baixar as imagens globais
         supabaseClient.from('evaluation_details').select('id, evaluation_id, question_id, answer, cp_validated').limit(15000)
       ]);
 
-      // Correção: Usando '==' para evitar problemas de tipo entre String/Int no mapeamento.
       const formattedEvals = keysToCamel(e.data || []).map(ev => ({
         ...ev,
         details: keysToCamel(d.data || []).filter(det => det.evaluationId == ev.id)
@@ -291,7 +294,6 @@ export default function App() {
   };
 
   const handleShowReport = async (ev) => {
-    // Busca os detalhes COMPLETOS desta avaliação sob demanda (Lazy Load)
     if (!supabaseClient) {
       setSelectedEval(ev);
       return;
@@ -311,7 +313,7 @@ export default function App() {
     } catch (error) {
       console.error("Erro ao buscar detalhes da avaliação:", error);
       alert("Houve um erro ao buscar os detalhes e imagens desta avaliação.");
-      setSelectedEval(ev); // Fallback
+      setSelectedEval(ev);
     }
   };
 
@@ -328,7 +330,7 @@ export default function App() {
          };
          setUser(u);
          localStorage.setItem('vq_user', JSON.stringify(u));
-       } else alert("Dados incorretos.");
+       } else alert("Dados de acesso incorretos.");
     });
   };
 
@@ -338,9 +340,9 @@ export default function App() {
   };
 
   if (loading || !supabaseClient) return (
-    <div className={`h-screen w-full ${isDark ? 'bg-black text-white' : 'bg-white text-black'} flex flex-col items-center justify-center text-center transition-colors duration-500`}>
-      <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-      <p className="mt-4 text-xs font-black uppercase text-gray-500 tracking-widest animate-pulse">Sincronizando Portal VQ</p>
+    <div className={`h-screen w-full flex flex-col items-center justify-center text-center transition-colors duration-500 ${isDark ? 'bg-slate-950 text-white' : 'bg-slate-50 text-slate-900'}`}>
+      <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      <p className={`mt-4 text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'} animate-pulse`}>Carregando sistema...</p>
     </div>
   );
 
@@ -349,102 +351,112 @@ export default function App() {
   const isAdmin = user.role === 'admin';
 
   return (
-    <div className={`min-h-screen ${isDark ? 'bg-black text-white' : 'bg-[#f8f9fa] text-gray-900'} flex overflow-hidden transition-colors duration-300`}>
-      <aside className={`fixed inset-y-0 left-0 z-50 transition-all duration-300 ${isDark ? 'bg-black border-white/5' : 'bg-white border-gray-200'} border-r ${isSidebarOpen ? 'w-64' : 'w-20'} hidden lg:block no-print shadow-2xl`}>
+    <div className={`min-h-screen flex overflow-hidden transition-colors duration-300 ${isDark ? 'bg-slate-950 text-slate-200' : 'bg-slate-50 text-slate-900'}`}>
+      {/* SIDEBAR */}
+      <aside className={`fixed inset-y-0 left-0 z-50 transition-all duration-300 border-r hidden lg:flex flex-col no-print ${isSidebarOpen ? 'w-64' : 'w-20'} ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
         <div className={`p-6 flex items-center ${isSidebarOpen ? 'gap-3' : 'justify-center'}`}>
-          <div className="w-10 h-10 bg-blue-600 rounded flex items-center justify-center font-black text-white italic text-xl shadow-lg shadow-blue-600/30 shrink-0">VQ</div>
-          {isSidebarOpen && <span className="font-black text-xl tracking-tighter text-blue-500 uppercase tracking-widest animate-in fade-in duration-500">Portal VQ</span>}
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white text-sm shrink-0">VQ</div>
+          {isSidebarOpen && <span className="font-semibold text-lg tracking-tight text-slate-900 dark:text-white truncate">Portal Qualidade</span>}
         </div>
 
-        <nav className="mt-8 px-4 space-y-3">
-          <NavItem icon={<LayoutDashboard size={20}/>} label="Home" active={activeTab === 'home'} onClick={() => setActiveTab('home')} collapsed={!isSidebarOpen} isDark={isDark} />
-          <NavItem icon={<BarChart3 size={20}/>} label="Dashboard" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} collapsed={!isSidebarOpen} isDark={isDark} />
-          <NavItem icon={<History size={20}/>} label="histórico" active={activeTab === 'histórico'} onClick={() => setActiveTab('histórico')} collapsed={!isSidebarOpen} isDark={isDark} />
+        <nav className="mt-6 px-3 flex-1 space-y-1">
+          <NavItem icon={<LayoutDashboard size={18}/>} label="Visão Geral" active={activeTab === 'home'} onClick={() => setActiveTab('home')} collapsed={!isSidebarOpen} isDark={isDark} />
+          <NavItem icon={<BarChart3 size={18}/>} label="Dashboard" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} collapsed={!isSidebarOpen} isDark={isDark} />
+          <NavItem icon={<History size={18}/>} label="Histórico" active={activeTab === 'histórico'} onClick={() => setActiveTab('histórico')} collapsed={!isSidebarOpen} isDark={isDark} />
           
           {isAdmin && (
-            <>
+            <div className="pt-6">
               {isSidebarOpen ? (
-                <div className={`text-[10px] font-black uppercase tracking-widest mt-10 mb-2 px-3 animate-in fade-in duration-500 ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>Gestão de Rede</div>
+                <div className={`text-xs font-semibold uppercase tracking-wider mb-3 px-3 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Administração</div>
               ) : (
-                <div className={`h-px my-8 mx-2 ${isDark ? 'bg-white/10' : 'bg-gray-100'}`} />
+                <div className={`h-px my-6 mx-3 ${isDark ? 'bg-slate-800' : 'bg-slate-200'}`} />
               )}
-              <NavItem icon={<PlusCircle size={20}/>} label="Nova Auditoria" active={activeTab === 'new'} onClick={() => setActiveTab('new')} collapsed={!isSidebarOpen} isDark={isDark} />
-              <NavItem icon={<Settings size={20}/>} label="Configuração - ADM" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} collapsed={!isSidebarOpen} isDark={isDark} />
-            </>
+              <div className="space-y-1">
+                <NavItem icon={<PlusCircle size={18}/>} label="Nova Auditoria" active={activeTab === 'new'} onClick={() => setActiveTab('new')} collapsed={!isSidebarOpen} isDark={isDark} />
+                <NavItem icon={<Settings size={18}/>} label="Configurações" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} collapsed={!isSidebarOpen} isDark={isDark} />
+              </div>
+            </div>
           )}
         </nav>
 
-        <div className={`absolute bottom-8 left-0 w-full px-4 flex ${isSidebarOpen ? 'justify-start' : 'justify-center'}`}>
-           <NavItem icon={<LogOut size={20} />} label="Sair" active={false} onClick={logout} collapsed={!isSidebarOpen} isDark={isDark} />
+        <div className="p-4">
+           <NavItem icon={<LogOut size={18} />} label="Encerrar Sessão" active={false} onClick={logout} collapsed={!isSidebarOpen} isDark={isDark} />
         </div>
       </aside>
 
-      <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'lg:ml-64' : 'lg:ml-20'} h-screen overflow-y-auto no-scrollbar`}>
-        <header className={`sticky top-0 z-40 ${isDark ? 'bg-black/90' : 'bg-white/90'} backdrop-blur-xl px-8 py-5 flex items-center justify-between border-b ${isDark ? 'border-white/5' : 'border-gray-200'} no-print transition-colors`}>
+      {/* MAIN CONTENT */}
+      <main className={`flex-1 transition-all duration-300 flex flex-col h-screen ${isSidebarOpen ? 'lg:ml-64' : 'lg:ml-20'}`}>
+        <header className={`sticky top-0 z-40 backdrop-blur-xl px-8 py-4 flex items-center justify-between border-b no-print transition-colors ${isDark ? 'bg-slate-900/80 border-slate-800' : 'bg-white/80 border-slate-200'}`}>
           <div className="flex items-center gap-4">
-            <button onClick={() => setSidebarOpen(!isSidebarOpen)} className={`p-2 rounded-full transition-colors hidden lg:block ${isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-gray-800'}`}>
-              <Menu size={24} />
+            <button onClick={() => setSidebarOpen(!isSidebarOpen)} className={`p-2 rounded-lg transition-colors hidden lg:block ${isDark ? 'hover:bg-slate-800 text-slate-300' : 'hover:bg-slate-100 text-slate-600'}`}>
+              <Menu size={20} />
             </button>
-            <h2 className="text-xl font-black uppercase italic tracking-tighter capitalize">
-              {activeTab === 'settings' ? 'Configuração - ADM' : activeTab}
+            <h2 className="text-xl font-semibold capitalize text-slate-900 dark:text-white">
+              {activeTab === 'settings' ? 'Configurações do Sistema' : activeTab}
             </h2>
           </div>
           <div className="flex items-center gap-4">
             <button 
               onClick={() => setIsDark(!isDark)}
-              className={`p-2.5 rounded-xl border transition-all duration-300 ${isDark ? 'bg-white/5 border-white/10 text-yellow-400 hover:bg-white/10' : 'bg-black/5 border-gray-200 text-gray-800 hover:bg-black/10'}`}
-              title={isDark ? "Mudar para Modo Claro" : "Mudar para Modo Escuro"}
+              className={`p-2.5 rounded-lg border transition-colors ${isDark ? 'bg-slate-800 border-slate-700 text-amber-400 hover:bg-slate-700' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+              title={isDark ? "Modo Claro" : "Modo Escuro"}
             >
-              {isDark ? <Sun size={18} fill="currentColor" /> : <Moon size={18} fill="currentColor" />}
+              {isDark ? <Sun size={18} /> : <Moon size={18} />}
             </button>
 
-            <div className="text-right hidden sm:block">
-              <p className="text-sm font-black uppercase leading-none">{user.name}</p>
-              <p className="text-[10px] text-blue-500 font-bold tracking-widest uppercase">{user.role}</p>
+            <div className="hidden sm:flex flex-col items-end">
+              <span className="text-sm font-semibold text-slate-900 dark:text-white">{user.name}</span>
+              <span className="text-xs text-slate-500 capitalize">{user.role === 'manager' ? 'Gestora' : user.role === 'admin' ? 'Administrador' : 'Supervisora'}</span>
             </div>
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-lg flex items-center justify-center font-black text-white text-lg border border-white/10 shadow-lg">{user.name.charAt(0)}</div>
+            <div className="w-10 h-10 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-full flex items-center justify-center font-bold text-sm">
+              {user.name.charAt(0)}
+            </div>
           </div>
         </header>
 
-        <div id="content-container" className="px-8 py-10 max-w-[1400px] mx-auto no-print">
+        <div id="content-container" className="flex-1 overflow-y-auto no-scrollbar p-8 max-w-7xl mx-auto w-full no-print">
           {activeTab === 'home' && <HomeView db={db} user={user} setActiveTab={setActiveTab} onShowReport={handleShowReport} isDark={isDark} />}
           {activeTab === 'dashboard' && <DashboardView db={db} user={user} isDark={isDark} />}
-          {activeTab === 'histórico' && <HistoryView db={db} user={user} onShowReport={handleShowReport} isDark={isDark} />}
+          {activeTab === 'histórico' && <HistoryView db={db} user={user} onShowReport={handleShowReport} isDark={isDark} supabaseClient={supabaseClient} fetchData={fetchData} />}
           {activeTab === 'new' && isAdmin && <NewAuditView db={db} supabaseClient={supabaseClient} onComplete={() => { fetchData(); setActiveTab('histórico'); }} isDark={isDark} />}
           {activeTab === 'settings' && isAdmin && <ManagementView db={db} supabaseClient={supabaseClient} fetchData={fetchData} isDark={isDark} />}
         </div>
       </main>
 
+      {/* MODAL DE RELATÓRIO */}
       {selectedEval && (
-        <div id="report-portal" className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 no-print">
-          <div className={`${isDark ? 'bg-[#121212] border-white/10' : 'bg-white border-gray-200'} w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl border shadow-2xl flex flex-col relative animate-in zoom-in-95 duration-300 text-left`}>
-            <div className={`sticky top-0 z-50 ${isDark ? 'bg-[#121212]/95 border-white/10' : 'bg-white/95 border-gray-200'} px-8 py-6 border-b flex justify-between items-center text-left transition-colors`}>
-              <div className="flex items-center gap-3 text-left">
-                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center font-black text-white italic">VQ</div>
-                <h3 className={`font-black uppercase italic ${isDark ? 'text-white' : 'text-gray-900'}`}>Dossiê Detalhado</h3>
+        <div id="report-portal" className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 sm:p-6 no-print">
+          <div className={`${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} w-full max-w-5xl max-h-[90vh] overflow-hidden rounded-2xl border shadow-xl flex flex-col relative animate-in zoom-in-95 duration-200`}>
+            <div className={`px-6 py-4 border-b flex justify-between items-center transition-colors ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center font-bold text-white text-xs">VQ</div>
+                <h3 className={`font-semibold text-lg ${isDark ? 'text-white' : 'text-slate-900'}`}>Relatório de Auditoria</h3>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => window.print()} className="py-2 text-xs uppercase" isDark={isDark}><Printer size={16}/> Imprimir</Button>
-                <button onClick={() => setSelectedEval(null)} className={`p-2 rounded-full ${isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-gray-800'}`}><X/></button>
+                <Button variant="outline" onClick={() => window.print()} className="py-2 text-xs" isDark={isDark}><Printer size={16}/> Imprimir</Button>
+                <button onClick={() => setSelectedEval(null)} className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-600'}`}><X size={20}/></button>
               </div>
             </div>
-            <ReportContent evaluation={selectedEval} db={db} isDark={isDark} onExpandImage={setExpandedImg} />
+            <div className="overflow-y-auto p-6 sm:p-8">
+              <ReportContent evaluation={selectedEval} db={db} isDark={isDark} onExpandImage={setExpandedImg} />
+            </div>
           </div>
         </div>
       )}
 
+      {/* VISUALIZADOR DE IMAGEM EXPANDIDA */}
       {expandedImg && (
         <div 
-          className="fixed inset-0 z-[2000] bg-black/95 flex items-center justify-center p-4 cursor-zoom-out animate-in fade-in duration-200"
+          className="fixed inset-0 z-[2000] bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4 cursor-zoom-out animate-in fade-in duration-200"
           onClick={() => setExpandedImg(null)}
         >
-          <button className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors">
-            <X size={32} />
+          <button className="absolute top-6 right-6 text-white/70 hover:text-white transition-colors bg-slate-800/50 p-2 rounded-full">
+            <X size={24} />
           </button>
           <img 
             src={expandedImg} 
             alt="Evidência Expandida" 
-            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-300" 
+            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-200" 
           />
         </div>
       )}
@@ -465,6 +477,81 @@ export default function App() {
 
 // --- VIEWS ---
 
+function HomeView({ db, user, setActiveTab, onShowReport, isDark }) {
+  const auditList = useMemo(() => {
+    let list = db.evaluations || [];
+    if (user.role === 'manager') list = list.filter(e => e.storeId == user.storeId);
+    else if (user.role === 'supervisor') list = list.filter(e => user.accessibleStores?.includes(e.storeId));
+    return [...list].sort((a, b) => new Date(b.date) - new Date(a.date));
+  }, [db.evaluations, user]);
+  
+  const avg = auditList.length ? (auditList.reduce((a, b) => a + b.score, 0) / auditList.length).toFixed(2) : "0.00";
+  const criticalCount = auditList.filter(e => e.score < 80).length;
+
+  return (
+    <div className="space-y-8 animate-in fade-in duration-300">
+      {/* HEADER BANNER */}
+      <div className={`p-8 sm:p-10 rounded-2xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden`}>
+        <div className="relative z-10">
+          <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Portal Qualidade e Conformidade</h1>
+          <p className={`mt-2 text-base ${isDark ? 'text-slate-400' : 'text-slate-600'} max-w-xl`}>Sistema centralizado de gestão técnica, auditorias de padronização e visualização de indicadores da rede.</p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Button onClick={() => setActiveTab('dashboard')} isDark={isDark}><BarChart3 size={16}/> Ver Dashboard</Button>
+            {user.role === 'admin' && <Button variant="secondary" onClick={() => setActiveTab('new')} isDark={isDark}><PlusCircle size={16}/> Nova Avaliação</Button>}
+          </div>
+        </div>
+        <div className="absolute right-0 top-0 h-full w-1/3 opacity-5 dark:opacity-10 pointer-events-none hidden md:block">
+           <ShieldCheck className="w-full h-full text-blue-600 scale-150 transform translate-x-1/4" />
+        </div>
+      </div>
+
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <StatCard isDark={isDark} title="Média de Desempenho" value={`${avg}%`} icon={<TrendingUp className="text-emerald-500" size={24}/>} />
+        <StatCard isDark={isDark} title="Alertas de Conformidade" value={criticalCount} icon={<AlertCircle className="text-amber-500" size={24}/>} />
+        <StatCard isDark={isDark} title="Unidades Ativas" value={db.stores.length} icon={<Store className="text-blue-500" size={24}/>} />
+      </section>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-4">
+          <h3 className={`text-lg font-semibold flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            <Clock size={18} className="text-blue-500"/> Registros Recentes
+          </h3>
+          <div className="space-y-3">
+            {auditList.slice(0, 5).map((ev, idx) => { 
+              const store = db.stores.find(s => s.id === ev.storeId); 
+              return (
+                <Card key={ev.id} isDark={isDark} className={`p-4 flex items-center gap-4 transition-colors cursor-pointer ${isDark ? 'hover:bg-slate-800' : 'hover:bg-slate-50'}`} onClick={() => onShowReport(ev)}>
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${ev.score >= 80 ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' : 'bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400'}`}>
+                    {ev.score >= 80 ? <CheckCircle2 size={20} /> : <AlertTriangle size={20} />}
+                  </div>
+                  <div className="flex-1">
+                    <p className={`text-sm font-medium ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>Auditoria na unidade <span className="font-semibold">{store?.name}</span></p>
+                    <p className={`text-xs mt-0.5 ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>Conduzida por {ev.evaluator} em {new Date(ev.date).toLocaleDateString('pt-BR')}</p>
+                  </div>
+                  <div className={`font-semibold text-sm px-2.5 py-1 rounded-md ${ev.score >= 80 ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' : 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400'}`}>
+                    {Number(ev.score).toFixed(1)}%
+                  </div>
+                </Card>
+              ); 
+            })}
+            {auditList.length === 0 && <p className="text-sm text-slate-500 py-4">Nenhum registro encontrado.</p>}
+          </div>
+        </div>
+
+        <div className="lg:col-span-1 h-full">
+          <Card isDark={isDark} className="p-6 h-full flex flex-col justify-center items-center text-center bg-gradient-to-br from-blue-600 to-indigo-700 border-none">
+            <h4 className="text-lg font-medium text-blue-100 mb-6">Média Geral da Rede</h4>
+            <div className="w-40 h-40 rounded-full border-8 border-blue-400/30 flex items-center justify-center mb-6">
+              <span className="text-5xl font-bold text-white">{avg}<span className="text-2xl">%</span></span>
+            </div>
+            <p className="text-sm text-blue-100 opacity-90 max-w-[200px]">Representa o índice consolidado de aderência aos padrões de qualidade.</p>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ManagementView({ db, supabaseClient, fetchData, isDark }) {
   const [activeSubTab, setActiveSubTab] = useState('users');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -472,12 +559,12 @@ function ManagementView({ db, supabaseClient, fetchData, isDark }) {
   const [filterChannelId, setFilterChannelId] = useState('all');
 
   const config = {
-    users: { title: "Utilizadores", icon: <Users size={18}/>, table: "users" },
-    managers: { title: "Gestoras", icon: <UserCheck size={18}/>, table: "managers" },
-    stores: { title: "Lojas", icon: <Store size={18}/>, table: "stores" },
-    channels: { title: "Canais", icon: <BarChart3 size={18}/>, table: "channels" },
-    indicators: { title: "Indicadores", icon: <Layers size={18}/>, table: "indicators" },
-    questions: { title: "Perguntas", icon: <FileText size={18}/>, table: "questions" }
+    users: { title: "Usuários", icon: <Users size={16}/>, table: "users" },
+    managers: { title: "Gestoras", icon: <UserCheck size={16}/>, table: "managers" },
+    stores: { title: "Lojas", icon: <Store size={16}/>, table: "stores" },
+    channels: { title: "Canais", icon: <Layers size={16}/>, table: "channels" },
+    indicators: { title: "Indicadores", icon: <Target size={16}/>, table: "indicators" },
+    questions: { title: "Perguntas", icon: <FileText size={16}/>, table: "questions" }
   };
 
   const handleEdit = (item) => {
@@ -486,9 +573,9 @@ function ManagementView({ db, supabaseClient, fetchData, isDark }) {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Confirmar eliminação?")) return;
+    if (!window.confirm("Tem certeza que deseja excluir este registro?")) return;
     const { error } = await supabaseClient.from(config[activeSubTab].table).delete().eq('id', id);
-    if (error) alert("Erro: " + error.message);
+    if (error) alert("Erro ao excluir: " + error.message);
     else fetchData();
   };
 
@@ -511,7 +598,7 @@ function ManagementView({ db, supabaseClient, fetchData, isDark }) {
     else action = supabaseClient.from(config[activeSubTab].table).insert([payload]);
 
     const { error } = await action;
-    if (error) alert("Erro ao guardar: " + error.message);
+    if (error) alert("Erro ao salvar: " + error.message);
     else { setIsModalOpen(false); setEditingItem(null); fetchData(); }
   };
 
@@ -524,71 +611,85 @@ function ManagementView({ db, supabaseClient, fetchData, isDark }) {
   }, [db, activeSubTab, filterChannelId]);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 text-left">
-      <div className="flex justify-between items-end">
+    <div className="space-y-6 animate-in fade-in duration-300">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
         <div>
-          <h1 className="text-5xl font-black italic uppercase tracking-tighter"></h1>
-          <p className={`${isDark ? 'text-gray-500' : 'text-gray-400'} font-bold uppercase tracking-widest text-[10px] mt-2`}>Configuração Geral do Sistema</p>
+          <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Configurações</h1>
+          <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Gerenciamento da estrutura do portal.</p>
         </div>
-        <Button onClick={() => { setEditingItem(null); setIsModalOpen(true); }} className="py-3 uppercase text-xs tracking-widest" isDark={isDark}><Plus size={18}/> Novo Registo</Button>
+        <Button onClick={() => { setEditingItem(null); setIsModalOpen(true); }} isDark={isDark}><Plus size={16}/> Novo Registro</Button>
       </div>
-      <div className={`flex flex-col md:flex-row md:items-center justify-between gap-4 border-b ${isDark ? 'border-white/5' : 'border-gray-200'}`}>
-        <div className="flex gap-8 overflow-x-auto no-scrollbar pb-1">
+
+      <div className={`flex flex-col md:flex-row md:items-center justify-between gap-4 border-b ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
+        <div className="flex gap-6 overflow-x-auto no-scrollbar">
           {Object.entries(config).map(([key, val]) => (
-            <button key={key} onClick={() => setActiveSubTab(key)} className={`flex items-center gap-2 px-1 py-4 text-xs font-black uppercase tracking-widest transition-all border-b-2 ${activeSubTab === key ? 'border-blue-600 text-blue-500' : `border-transparent ${isDark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}`}>{val.icon} {val.title}</button>
+            <button key={key} onClick={() => setActiveSubTab(key)} className={`flex items-center gap-2 pb-3 text-sm font-medium transition-colors border-b-2 whitespace-nowrap ${activeSubTab === key ? 'border-blue-600 text-blue-600 dark:text-blue-400' : `border-transparent ${isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-800'}`}`}>{val.icon} {val.title}</button>
           ))}
         </div>
         {['stores', 'indicators', 'questions'].includes(activeSubTab) && (
-          <div className="flex items-center gap-3 pb-2 md:pb-0">
-            <Filter size={14} className="text-gray-500" />
-            <select className={`bg-transparent border-none text-[10px] font-black uppercase tracking-widest text-blue-500 outline-none cursor-pointer`} value={filterChannelId} onChange={e => setFilterChannelId(e.target.value)}>
+          <div className="flex items-center gap-2 pb-3">
+            <Filter size={14} className="text-slate-400" />
+            <select className={`bg-transparent text-sm font-medium outline-none cursor-pointer ${isDark ? 'text-slate-300' : 'text-slate-700'}`} value={filterChannelId} onChange={e => setFilterChannelId(e.target.value)}>
               <option value="all">Todos os Canais</option>
               {db.channels.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
         )}
       </div>
-      <Card isDark={isDark} className="p-0 overflow-hidden">
-        <table className="w-full text-left">
-          <thead className={`${isDark ? 'bg-white/5' : 'bg-gray-50'} text-[10px] font-black uppercase tracking-widest text-left`}>
-            <tr><th className="p-4">Informação</th><th className="p-4">Associação</th><th className="p-4 text-right">Ações</th></tr>
-          </thead>
-          <tbody className={`divide-y ${isDark ? 'divide-white/5' : 'divide-gray-100'}`}>
-            {filteredData.map(item => (
-              <tr key={item.id} className={`${isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-gray-50/50'} transition-colors group`}>
-                <td className="p-4">
-                  <p className={`font-black uppercase italic ${isDark ? 'text-white' : 'text-gray-800'}`}>{item.name || item.text}</p>
-                  <p className="text-[10px] text-gray-500 font-bold uppercase">{item.email || item.code || `ID: #${item.id}`}</p>
-                </td>
-                <td className="p-4">
-                  {activeSubTab === 'users' && <Badge type={item.role === 'admin' ? 'primary' : 'neutral'}>{item.role}</Badge>}
-                  {activeSubTab === 'managers' && <Badge type={item.status === 'Ativa' ? 'success' : 'warning'}>{item.status}</Badge>}
-                  {activeSubTab === 'stores' && <span className="text-xs text-gray-400 font-bold uppercase">{db.channels.find(c => c.id == item.channelId)?.name}</span>}
-                  {activeSubTab === 'questions' && <Badge type={item.severity === 'gravissima' ? 'danger' : 'neutral'}>{item.severity}</Badge>}
-                </td>
-                <td className="p-4 text-right">
-                  <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                    <button onClick={() => handleEdit(item)} className={`p-2 ${isDark ? 'bg-white/5 hover:bg-blue-600 text-white' : 'bg-gray-100 hover:bg-blue-600 hover:text-white text-gray-600'} rounded-lg transition-colors`}><Edit3 size={16}/></button>
-                    <button onClick={() => handleDelete(item.id)} className={`p-2 ${isDark ? 'bg-white/5 hover:bg-red-600 text-white' : 'bg-gray-100 hover:bg-red-600 hover:text-white text-gray-600'} rounded-lg transition-colors`}><Trash2 size={16}/></button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+
+      <Card isDark={isDark} className="p-0">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm whitespace-nowrap">
+            <thead className={`${isDark ? 'bg-slate-800/50 text-slate-400' : 'bg-slate-50 text-slate-500'} font-medium`}>
+              <tr><th className="px-6 py-3">Informação</th><th className="px-6 py-3">Detalhes</th><th className="px-6 py-3 text-right">Ações</th></tr>
+            </thead>
+            <tbody className={`divide-y ${isDark ? 'divide-slate-800' : 'divide-slate-200'}`}>
+              {filteredData.map(item => (
+                <tr key={item.id} className={`${isDark ? 'hover:bg-slate-800/30' : 'hover:bg-slate-50/50'} transition-colors group`}>
+                  <td className="px-6 py-4">
+                    <p className={`font-medium ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>{item.name || item.text}</p>
+                    <p className={`text-xs mt-0.5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{item.email || item.code || `ID: ${item.id}`}</p>
+                  </td>
+                  <td className="px-6 py-4">
+                    {activeSubTab === 'users' && <Badge isDark={isDark} type={item.role === 'admin' ? 'primary' : 'neutral'}>{item.role === 'admin' ? 'Admin' : item.role === 'manager' ? 'Gestora' : 'Supervisor'}</Badge>}
+                    {activeSubTab === 'managers' && <Badge isDark={isDark} type={item.status === 'Ativa' ? 'success' : 'neutral'}>{item.status}</Badge>}
+                    {activeSubTab === 'stores' && <span className={`text-xs font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{db.channels.find(c => c.id == item.channelId)?.name}</span>}
+                    {activeSubTab === 'questions' && <Badge isDark={isDark} type={item.severity === 'gravissima' ? 'danger' : item.severity === 'grave' ? 'warning' : 'neutral'}>{item.severity}</Badge>}
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => handleEdit(item)} className={`p-1.5 rounded-md transition-colors ${isDark ? 'text-slate-400 hover:bg-slate-700 hover:text-slate-200' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'}`}><Edit3 size={16}/></button>
+                      <button onClick={() => handleDelete(item.id)} className={`p-1.5 rounded-md transition-colors ${isDark ? 'text-slate-400 hover:bg-red-900/30 hover:text-red-400' : 'text-slate-500 hover:bg-red-50 hover:text-red-600'}`}><Trash2 size={16}/></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {filteredData.length === 0 && (
+                <tr>
+                  <td colSpan="3" className="px-6 py-8 text-center text-sm text-slate-500">Nenhum registro encontrado.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </Card>
+
       {isModalOpen && (
-        <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/85 backdrop-blur-md p-4">
-          <Card isDark={isDark} className="w-full max-w-lg p-8 space-y-6">
-            <h3 className={`font-black uppercase italic text-xl border-b pb-4 text-left ${isDark ? 'text-white border-white/5' : 'text-gray-900 border-gray-100'}`}>{editingItem ? 'Editar' : 'Novo'} {config[activeSubTab].title}</h3>
-            <form onSubmit={handleSave} className="grid grid-cols-1 gap-5 text-left">
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+          <Card isDark={isDark} className="w-full max-w-lg p-6 sm:p-8 animate-in zoom-in-95 duration-200">
+            <h3 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-slate-900'}`}>{editingItem ? 'Editar' : 'Novo'} {config[activeSubTab].title}</h3>
+            <form onSubmit={handleSave} className="space-y-4 text-left">
               {activeSubTab === 'users' && (<UserForm editingItem={editingItem} db={db} isDark={isDark} />)}
               {activeSubTab === 'managers' && (<><FormInput label="Nome" name="name" isDark={isDark} defaultValue={editingItem?.name} required /><FormSelect label="Status" name="status" isDark={isDark} defaultValue={editingItem?.status}><option value="Ativa">Ativa</option><option value="Férias">Férias</option><option value="Desligada">Desligada</option></FormSelect></>)}
               {activeSubTab === 'stores' && (<><FormInput label="Nome" name="name" isDark={isDark} defaultValue={editingItem?.name} required /><FormInput label="Código" name="code" isDark={isDark} defaultValue={editingItem?.code} required /><FormSelect label="Canal" name="channelId" isDark={isDark} defaultValue={editingItem?.channelId}>{db.channels.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</FormSelect><FormSelect label="Gestora" name="managerId" isDark={isDark} defaultValue={editingItem?.managerId}><option value="">Selecione...</option>{db.managers.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}</FormSelect></>)}
               {activeSubTab === 'channels' && <FormInput label="Nome" name="name" isDark={isDark} defaultValue={editingItem?.name} required />}
               {activeSubTab === 'indicators' && (<><FormInput label="Nome" name="name" isDark={isDark} defaultValue={editingItem?.name} required /><FormSelect label="Canal" name="channelId" isDark={isDark} defaultValue={editingItem?.channelId}>{db.channels.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</FormSelect></>)}
               {activeSubTab === 'questions' && (<><FormInput label="Texto" name="text" isDark={isDark} defaultValue={editingItem?.text} required /><FormSelect label="Gravidade" name="severity" isDark={isDark} defaultValue={editingItem?.severity}><option value="leve">Leve</option><option value="media">Média</option><option value="grave">Grave</option><option value="gravissima">Gravíssima</option></FormSelect><FormSelect label="Indicador" name="indicatorId" isDark={isDark} defaultValue={editingItem?.indicatorId}>{db.indicators.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}</FormSelect></>)}
-              <div className="pt-4 flex gap-4"><Button type="submit" className="flex-1" isDark={isDark}>Guardar</Button><Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} isDark={isDark}>Cancelar</Button></div>
+              
+              <div className="pt-6 flex gap-3">
+                <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)} isDark={isDark} className="flex-1">Cancelar</Button>
+                <Button type="submit" isDark={isDark} className="flex-1">Salvar</Button>
+              </div>
             </form>
           </Card>
         </div>
@@ -603,10 +704,10 @@ function UserForm({ editingItem, db, isDark }) {
     <>
       <FormInput label="Nome" name="name" isDark={isDark} defaultValue={editingItem?.name} required />
       <FormInput label="E-mail" name="email" isDark={isDark} type="email" defaultValue={editingItem?.email} required />
-      <FormInput label="Senha" name="password" isDark={isDark} defaultValue={editingItem?.password || '123'} required />
+      <FormInput label="Senha" name="password" isDark={isDark} defaultValue={editingItem?.password || ''} required type="password" />
       <FormSelect label="Função" name="role" isDark={isDark} value={role} onChange={e => setRole(e.target.value)}><option value="admin">Administrador</option><option value="manager">Gestora</option><option value="supervisor">Supervisora</option></FormSelect>
       {role === 'manager' && (<FormSelect label="Unidade Vinculada (Obrigatório)" isDark={isDark} name="storeId" defaultValue={editingItem?.storeId} required><option value="">Selecione a loja...</option>{db.stores.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</FormSelect>)}
-      {role === 'supervisor' && (<div className="space-y-2"><label className={`text-[10px] font-black uppercase tracking-widest ml-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Lojas Acessíveis (IDs)</label><input className={`w-full ${isDark ? 'bg-[#252525] border-white/10 text-white placeholder-gray-700' : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-300'} border rounded-xl p-4 text-sm outline-none focus:border-blue-600 transition-all`} name="accessibleStores" placeholder="Ex: 1, 4, 12" defaultValue={editingItem?.accessibleStores?.join(', ')} /></div>)}
+      {role === 'supervisor' && (<div className="space-y-1.5"><label className={`text-xs font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Lojas Acessíveis (IDs separados por vírgula)</label><input className={`w-full border rounded-lg px-3 py-2 text-sm outline-none transition-all ${isDark ? 'bg-slate-900 border-slate-700 text-slate-200 focus:border-blue-500' : 'bg-white border-slate-300 text-slate-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20'}`} name="accessibleStores" placeholder="Ex: 1, 4, 12" defaultValue={editingItem?.accessibleStores?.join(', ')} /></div>)}
     </>
   );
 }
@@ -671,175 +772,118 @@ function DashboardView({ db, user, isDark }) {
   }, [filteredEvals, db.questions]);
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-500 text-left">
-      <Card isDark={isDark} className="p-6 bg-transparent no-print text-left">
-        <div className="flex flex-wrap gap-6 items-end">
-          <div className="space-y-2 flex-1 min-w-[200px] text-left"><label className="text-[10px] font-black uppercase text-gray-500 tracking-widest text-left"><Filter size={12}/> Canal</label><select className={`w-full ${isDark ? 'bg-[#1c1c1c] border-white/5 text-white' : 'bg-white border-gray-200 text-gray-800'} border rounded-xl p-3 text-sm outline-none transition-colors`} value={filterChannel} onChange={e => setFilterChannel(e.target.value)}><option value="all">Todos</option>{db.channels.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
-          <div className="space-y-2 flex-1 min-w-[200px] text-left"><label className="text-[10px] font-black uppercase text-gray-500 tracking-widest text-left"><Calendar size={12}/> Mês</label><input type="month" className={`w-full ${isDark ? 'bg-[#1c1c1c] border-white/5 text-white' : 'bg-white border-gray-200 text-gray-800'} border rounded-xl p-3 text-sm outline-none transition-colors`} value={filterMonth} onChange={e => setFilterMonth(e.target.value)} /></div>
-          <Button variant="outline" onClick={() => { setFilterChannel('all'); setFilterMonth(""); }} className="mb-1 uppercase text-xs" isDark={isDark}>Limpar</Button>
-        </div>
-      </Card>
-
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard isDark={isDark} title="AUDITORIAS" value={stats.audits} icon={<ClipboardCheck className="text-blue-500"/>} subtitle="REALIZADO" />
-        <StatCard isDark={isDark} title="LOJAS" value={stats.stores} icon={<Store className="text-purple-500"/>} subtitle="VISITADAS" />
-        <StatCard isDark={isDark} title="CONFORMIDADE" value={`${stats.conf}%`} icon={<TrendingUp className="text-green-500"/>} subtitle="MÉDIA ACERTO" />
-        <StatCard isDark={isDark} title="INCONFORME" value={`${stats.inconf}%`} icon={<TrendingDown className="text-red-500"/>} subtitle="MÉDIA FALHA" />
-      </section>
-
-      {/* GRÁFICO REALIZADO X META - POSICIONADO ACIMA */}
-      <Card isDark={isDark} className="p-8 space-y-8 relative min-h-[450px] text-left w-full">
-        <div className="flex justify-between items-center">
-          <h3 className={`text-xl font-black uppercase italic flex items-center gap-3 text-left ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            <Target className="text-emerald-500"/> Realizado X meta
-          </h3>
-          <div className="flex items-center gap-4 text-[9px] font-black uppercase tracking-widest">
-            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded bg-blue-600"></div> <span>Meta 100%</span></div>
-            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded bg-red-600"></div> <span>Abaixo</span></div>
-          </div>
-        </div>
-        
-        {/* Exibe todas as lojas sem .slice() e com scroll horizontal */}
-        <PerformanceBarChart 
-          data={rankings.storeRank} 
-          isDark={isDark} 
-        />
-      </Card>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 text-left">
-        <Card isDark={isDark} className="p-8 space-y-6 text-left">
-          <h3 className={`text-xl font-black uppercase italic flex items-center gap-3 text-left ${isDark ? 'text-white' : 'text-gray-900'}`}><PlayCircle className="text-blue-500"/> Volume de Visitas</h3>
-          {/* Scroll oculto para Volume de Visitas */}
-          <div className="space-y-4 text-left max-h-[400px] overflow-y-auto no-scrollbar pr-2">
-            {rankings.storeRank.map(store => (
-              <div key={store.id} className="space-y-1 text-left">
-                <div className="flex justify-between text-[11px] font-bold uppercase">
-                  <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>{store.name}</span>
-                  <span className={isDark ? 'text-white' : 'text-gray-900'}>{store.visits} visitas</span>
-                </div>
-                <div className={`h-2 ${isDark ? 'bg-white/5' : 'bg-gray-100'} rounded-full overflow-hidden`}>
-                  <div className="h-full bg-blue-600 rounded-full transition-all duration-1000" style={{ width: `${(store.visits / Math.max(1, ...rankings.storeRank.map(s => s.visits))) * 100}%` }}></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-        
-        <div className="space-y-8">
-           <Card isDark={isDark} className="p-0 text-left">
-            <div className={`p-6 border-b ${isDark ? 'border-white/5 bg-blue-600/5' : 'border-gray-100 bg-blue-50/50'}`}><h4 className="font-black uppercase italic text-sm text-blue-500 flex items-center gap-2"><Store size={16}/> Ranking por Loja</h4></div>
-            {/* Scroll oculto para Ranking Loja */}
-            <div className="p-4 space-y-2 max-h-[250px] overflow-y-auto no-scrollbar">
-              {rankings.storeRank.length > 0 ? rankings.storeRank.map((s, i) => (
-                <div key={i} className={`flex items-center justify-between p-3 rounded-xl ${isDark ? 'bg-white/5 text-white' : 'bg-gray-50 text-gray-800'} text-left transition-colors`}>
-                  <div className="flex items-center gap-3 text-left">
-                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${i < 3 ? 'bg-blue-500 text-white' : `${isDark ? 'bg-white/10 text-white' : 'bg-gray-200 text-gray-500'}`}`}>#{i+1}</span>
-                    <span className="text-xs font-bold uppercase truncate max-w-[120px]">{s.name}</span>
-                  </div>
-                  <span className="text-xs font-black text-blue-500">{s.score.toFixed(2)}%</span>
-                </div>
-              )) : <div className="p-10 text-center text-gray-600 text-xs font-bold tracking-widest uppercase">Sem dados</div>}
-            </div>
-          </Card>
-
-          <Card isDark={isDark} className="p-0 text-left">
-            <div className={`p-6 border-b ${isDark ? 'border-white/5 bg-yellow-500/5' : 'border-gray-100 bg-yellow-50/50'}`}><h4 className="font-black uppercase italic text-sm text-yellow-500 flex items-center gap-2"><UserCheck size={16}/> Ranking por Gestora</h4></div>
-            {/* Scroll oculto para Ranking Gestora */}
-            <div className="p-4 space-y-2 text-left max-h-[250px] overflow-y-auto no-scrollbar">
-              {rankings.managerRank.length > 0 ? rankings.managerRank.map((m, i) => (
-                <div key={i} className={`flex items-center justify-between p-3 rounded-xl ${isDark ? 'bg-white/5 text-white' : 'bg-gray-50 text-gray-800'} text-left transition-colors`}>
-                  <div className="flex items-center gap-3">
-                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${i < 3 ? 'bg-yellow-500 text-black' : `${isDark ? 'bg-white/10 text-white' : 'bg-gray-200 text-gray-500'}`}`}>#{i+1}</span>
-                    <span className="text-xs font-bold uppercase truncate max-w-[120px]">{m.name}</span>
-                  </div>
-                  <span className={`text-xs font-black ${isDark ? 'text-yellow-500' : 'text-yellow-600'}`}>{m.score.toFixed(2)}%</span>
-                </div>
-              )) : <div className="p-10 text-center text-gray-600 text-xs font-bold tracking-widest uppercase">Sem dados</div>}
-            </div>
-          </Card>
+    <div className="space-y-6 animate-in fade-in duration-300">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-2">
+        <div>
+          <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Visão Geral de Dados</h1>
+          <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Acompanhe o desempenho da rede comercial.</p>
         </div>
       </div>
 
-      <Card isDark={isDark} className="p-0 overflow-hidden text-left border-white/5">
-        <div className={`p-6 border-b ${isDark ? 'border-white/5 bg-red-600/5' : 'border-gray-100 bg-red-50/50'} flex justify-between items-center`}><h4 className="font-black uppercase italic text-sm text-red-500 flex items-center gap-2"><AlertTriangle size={16}/> Top 5 Falhas Recorrentes</h4></div>
-        <table className="w-full text-left">
-          <thead className={isDark ? 'bg-white/5' : 'bg-gray-50'}>
-            <tr className="text-[10px] text-gray-500 font-black uppercase tracking-widest">
-              <th className="p-4">Item de Verificação</th><th className="p-4 text-right">Ocorrências</th>
-            </tr>
-          </thead>
-          <tbody className={`divide-y ${isDark ? 'divide-white/5' : 'divide-gray-100'}`}>
-            {topProblems.map((p, i) => (
-              <tr key={i} className={`transition-colors ${isDark ? 'hover:bg-white/[0.03]' : 'hover:bg-gray-50/50'}`}>
-                <td className={`p-4 text-[11px] font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{p.text}</td>
-                <td className="p-4 text-right"><span className="bg-red-500/10 text-red-500 px-4 py-1 rounded-full text-[10px] font-black">{p.count}</span></td>
-              </tr>
+      <Card isDark={isDark} className="p-4 sm:p-6 no-print">
+        <div className="flex flex-col sm:flex-row flex-wrap gap-4 items-end">
+          <div className="space-y-1.5 flex-1 min-w-[200px]">
+            <label className={`text-xs font-medium flex items-center gap-1.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}><Filter size={14}/> Filtro por Canal</label>
+            <select className={`w-full border rounded-lg px-3 py-2 text-sm outline-none transition-colors ${isDark ? 'bg-slate-900 border-slate-700 text-slate-200' : 'bg-white border-slate-300 text-slate-900'}`} value={filterChannel} onChange={e => setFilterChannel(e.target.value)}>
+              <option value="all">Todos os Canais</option>
+              {db.channels.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+          <div className="space-y-1.5 flex-1 min-w-[200px]">
+            <label className={`text-xs font-medium flex items-center gap-1.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}><Calendar size={14}/> Mês Referência</label>
+            <input type="month" className={`w-full border rounded-lg px-3 py-2 text-sm outline-none transition-colors ${isDark ? 'bg-slate-900 border-slate-700 text-slate-200' : 'bg-white border-slate-300 text-slate-900'}`} value={filterMonth} onChange={e => setFilterMonth(e.target.value)} />
+          </div>
+          <Button variant="outline" onClick={() => { setFilterChannel('all'); setFilterMonth(""); }} isDark={isDark}>Limpar Filtros</Button>
+        </div>
+      </Card>
+
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard isDark={isDark} title="Auditorias Realizadas" value={stats.audits} icon={<ClipboardCheck className="text-blue-500" size={20}/>} />
+        <StatCard isDark={isDark} title="Lojas Auditadas" value={stats.stores} icon={<Store className="text-indigo-500" size={20}/>} />
+        <StatCard isDark={isDark} title="Taxa de Conformidade" value={`${stats.conf}%`} icon={<TrendingUp className="text-emerald-500" size={20}/>} />
+        <StatCard isDark={isDark} title="Taxa de Falhas" value={`${stats.inconf}%`} icon={<TrendingDown className="text-red-500" size={20}/>} />
+      </section>
+
+      <Card isDark={isDark} className="p-6 relative min-h-[400px]">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className={`text-base font-semibold flex items-center gap-2 ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+            <Target className="text-blue-500" size={18}/> Atingimento vs Meta Global
+          </h3>
+          <div className="flex items-center gap-4 text-xs font-medium">
+            <div className={`flex items-center gap-1.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}><div className="w-2.5 h-2.5 rounded-sm bg-blue-500"></div> Meta atingida</div>
+            <div className={`flex items-center gap-1.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}><div className="w-2.5 h-2.5 rounded-sm bg-slate-400"></div> Abaixo</div>
+          </div>
+        </div>
+        <PerformanceBarChart data={rankings.storeRank} isDark={isDark} />
+      </Card>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card isDark={isDark} className="p-6">
+          <h3 className={`text-base font-semibold flex items-center gap-2 mb-6 ${isDark ? 'text-slate-200' : 'text-slate-800'}`}><Store className="text-blue-500" size={18}/> Top Perfomance (Lojas)</h3>
+          <div className="space-y-3">
+            {rankings.storeRank.slice(0, 5).map((s, i) => (
+              <div key={i} className={`flex items-center justify-between p-3 rounded-lg ${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} transition-colors`}>
+                <div className="flex items-center gap-3">
+                  <span className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-semibold ${i < 3 ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400' : `${isDark ? 'bg-slate-800 text-slate-400' : 'bg-slate-200 text-slate-600'}`}`}>#{i+1}</span>
+                  <span className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{s.name}</span>
+                </div>
+                <span className={`text-sm font-semibold ${s.score >= 80 ? 'text-emerald-500' : 'text-amber-500'}`}>{s.score.toFixed(1)}%</span>
+              </div>
             ))}
-            {topProblems.length === 0 && <tr><td colSpan="2" className="p-20 text-center text-gray-600 font-bold uppercase italic tracking-widest">Sem registos</td></tr>}
-          </tbody>
-        </table>
+            {rankings.storeRank.length === 0 && <div className="text-center text-sm text-slate-500 py-6">Nenhum dado disponível.</div>}
+          </div>
+        </Card>
+
+        <Card isDark={isDark} className="p-6">
+          <h3 className={`text-base font-semibold flex items-center gap-2 mb-6 ${isDark ? 'text-slate-200' : 'text-slate-800'}`}><UserCheck className="text-indigo-500" size={18}/> Top Perfomance (Gestoras)</h3>
+          <div className="space-y-3">
+            {rankings.managerRank.slice(0, 5).map((m, i) => (
+              <div key={i} className={`flex items-center justify-between p-3 rounded-lg ${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} transition-colors`}>
+                <div className="flex items-center gap-3">
+                  <span className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-semibold ${i < 3 ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400' : `${isDark ? 'bg-slate-800 text-slate-400' : 'bg-slate-200 text-slate-600'}`}`}>#{i+1}</span>
+                  <span className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{m.name}</span>
+                </div>
+                <span className={`text-sm font-semibold ${m.score >= 80 ? 'text-emerald-500' : 'text-amber-500'}`}>{m.score.toFixed(1)}%</span>
+              </div>
+            ))}
+            {rankings.managerRank.length === 0 && <div className="text-center text-sm text-slate-500 py-6">Nenhum dado disponível.</div>}
+          </div>
+        </Card>
+      </div>
+
+      <Card isDark={isDark}>
+        <div className={`px-6 py-4 border-b ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
+          <h3 className={`text-base font-semibold flex items-center gap-2 ${isDark ? 'text-slate-200' : 'text-slate-800'}`}><AlertTriangle className="text-amber-500" size={18}/> Ocorrências Mais Frequentes</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className={`${isDark ? 'bg-slate-800/50 text-slate-400' : 'bg-slate-50 text-slate-500'}`}>
+              <tr>
+                <th className="px-6 py-3 font-medium">Parâmetro Avaliado</th>
+                <th className="px-6 py-3 font-medium text-right">Frequência de Falha</th>
+              </tr>
+            </thead>
+            <tbody className={`divide-y ${isDark ? 'divide-slate-800' : 'divide-slate-200'}`}>
+              {topProblems.map((p, i) => (
+                <tr key={i} className={`transition-colors ${isDark ? 'hover:bg-slate-800/30' : 'hover:bg-slate-50'}`}>
+                  <td className={`px-6 py-3 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{p.text}</td>
+                  <td className="px-6 py-3 text-right">
+                    <span className="inline-flex items-center justify-center bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400 px-2.5 py-1 rounded-md text-xs font-semibold">
+                      {p.count}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              {topProblems.length === 0 && <tr><td colSpan="2" className="px-6 py-8 text-center text-slate-500">Nenhum registro de falha encontrado no período.</td></tr>}
+            </tbody>
+          </table>
+        </div>
       </Card>
     </div>
   );
 }
 
-function HomeView({ db, user, setActiveTab, onShowReport, isDark }) {
-  const auditList = useMemo(() => {
-    let list = db.evaluations || [];
-    if (user.role === 'manager') list = list.filter(e => e.storeId == user.storeId);
-    else if (user.role === 'supervisor') list = list.filter(e => user.accessibleStores?.includes(e.storeId));
-    return [...list].sort((a, b) => new Date(b.date) - new Date(a.date));
-  }, [db.evaluations, user]);
-  
-  const avg = auditList.length ? (auditList.reduce((a, b) => a + b.score, 0) / auditList.length).toFixed(2) : "0.00";
-  const criticalCount = auditList.filter(e => e.score < 75).length;
-
-  return (
-    <div className="space-y-12 animate-in fade-in duration-700 text-left">
-      <section className={`relative h-[380px] rounded-3xl overflow-hidden group shadow-2xl border ${isDark ? 'border-white/5' : 'border-gray-200'} text-left`}>
-        <img src="/img/loja.jpg" className="w-full h-full object-cover opacity-50 transition-all duration-[3000ms] group-hover:scale-105" />
-        <div className={`absolute inset-0 ${isDark ? 'bg-gradient-to-r from-black via-black/80' : 'bg-gradient-to-r from-white via-white/80'} to-transparent flex flex-col justify-center p-16 text-left transition-colors`}>
-          <h1 className={`text-6xl font-black mb-4 uppercase italic leading-[0.9] text-left ${isDark ? 'text-white' : 'text-gray-900'}`}>Visita de Qualidade <br/> </h1>
-          <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'} max-w-xl text-base mb-8 font-medium text-left`}>Acompanhamento de Auditoria em tempo real</p>
-          <div className="flex gap-4">
-            <Button variant="secondary" onClick={() => setActiveTab('dashboard')} className="px-8 py-3 uppercase text-xs tracking-widest" isDark={isDark}><BarChart3 size={18}/> Dashboard</Button>
-          </div>
-        </div>
-      </section>
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard isDark={isDark} title="PERFORMANCE REDE" value={`${avg}%`} icon={<BarChart3 className="text-blue-500" size={24}/>} subtitle="MÉDIA DE AUDITORIAS" />
-        <StatCard isDark={isDark} title="ALERTAS CRÍTICOS" value={criticalCount} icon={<AlertCircle className="text-red-500" size={24}/>} subtitle="ABAIXO DO ALVO" />
-        <StatCard isDark={isDark} title="PORTFOLIO LOJAS" value={db.stores.length} icon={<Store className="text-green-500" size={24}/>} subtitle="UNIDADES MONITORIZADAS" />
-      </section>
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-left">
-        <div className={`lg:col-span-8 ${isDark ? 'bg-[#121212] border-white/5' : 'bg-white border-gray-100'} rounded-3xl p-8 border shadow-2xl flex flex-col text-left transition-colors`}>
-          <div className="flex items-center gap-3 mb-10 text-left">
-            <Clock size={24} className="text-red-500"/>
-            <h3 className={`text-2xl font-black italic uppercase tracking-tighter text-left ${isDark ? 'text-white' : 'text-gray-900'}`}>Atividades Recentes</h3>
-          </div>
-          <div className="space-y-4 flex-1 text-left">
-            {auditList.slice(0, 4).map((ev, idx) => { 
-              const store = db.stores.find(s => s.id === ev.storeId); 
-              return (
-                <div key={ev.id} className={`${isDark ? 'bg-[#1c1c1c] border-white/5 hover:bg-[#252525]' : 'bg-gray-50 border-gray-100 hover:bg-gray-100/50'} rounded-2xl p-5 flex items-center gap-5 transition-all border group cursor-pointer text-left`} onClick={() => onShowReport(ev)}>
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 shadow-lg ${idx === 0 ? 'bg-blue-600/10 text-blue-500' : 'bg-red-600/10 text-red-500'}`}>{idx === 0 ? <CheckCircle size={24} /> : <PlayCircle size={24} />}</div>
-                  <div className="flex-1 text-left">
-                    <p className={`text-base font-medium text-left ${isDark ? 'text-gray-300' : 'text-gray-600'}`}><span className={`${isDark ? 'text-white' : 'text-gray-900'} font-black uppercase tracking-tighter`}>{ev.evaluator}</span> concluiu a auditoria na unidade <span className="text-red-500 font-black italic uppercase tracking-tighter">{store?.name}</span></p>
-                    <p className={`text-[10px] font-black uppercase mt-1 tracking-[0.2em] text-left ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>Auditado em {new Date(ev.date).toLocaleDateString('pt-BR')}</p>
-                  </div>
-                  <button className="p-2 opacity-0 group-hover:opacity-100 hover:bg-white/10 rounded-lg text-gray-500 transition-opacity"><Printer size={18}/></button>
-                </div>
-              ); 
-            })}
-          </div>
-        </div>
-        <div className="lg:col-span-4 h-full"><div className="bg-red-600 rounded-3xl p-10 h-full min-h-[420px] flex flex-col justify-between shadow-[0_20px_50px_rgba(220,38,38,0.4)] relative overflow-hidden group"><div className="relative z-10 text-left"><h4 className="text-4xl font-black italic leading-[0.85] uppercase tracking-tighter text-white">Média de <br/> Aprovações</h4><div className="mt-12"><span className="text-9xl font-black italic tracking-tighter leading-none text-white">{avg}%</span></div></div><div className="relative z-10 text-left"><p className="text-sm font-bold text-white leading-snug opacity-90">O score reflete o cumprimento total dos padrões VQ na última auditoria técnica.</p></div><div className="absolute bottom-0 right-0 p-8 flex items-end gap-1.5 opacity-20 group-hover:opacity-40 transition-all translate-y-4"><div className="w-3 h-10 bg-white rounded-t-lg"></div><div className="w-3 h-20 bg-white rounded-t-lg"></div><div className="w-3 h-14 bg-white rounded-t-lg"></div><div className="w-3 h-28 bg-white rounded-t-lg"></div><div className="w-3 h-18 bg-white rounded-t-lg"></div></div></div></div>
-      </section>
-    </div>
-  );
-}
-
-function HistoryView({ db, user, onShowReport, isDark }) {
+function HistoryView({ db, user, onShowReport, isDark, supabaseClient, fetchData }) {
   const [searchGestor, setSearchGestor] = useState('');
   const [searchLoja, setSearchLoja] = useState('');
   const [filterChannelId, setFilterChannelId] = useState('all');
@@ -880,40 +924,66 @@ function HistoryView({ db, user, onShowReport, isDark }) {
     return [...list].sort((a, b) => new Date(b.date) - new Date(a.date));
   }, [db.evaluations, db.stores, db.managers, user, searchGestor, searchLoja, filterChannelId, filterRange]);
 
+  const handleDelete = async (e, id) => {
+    e.stopPropagation();
+    if (!window.confirm("Tem certeza que deseja excluir esta avaliação permanentemente?")) return;
+    
+    const { error } = await supabaseClient.from('evaluations').delete().eq('id', id);
+    if (error) alert("Erro ao excluir a avaliação: " + error.message);
+    else fetchData();
+  };
+
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 text-left">
-      <Card isDark={isDark} className={`p-6 ${isDark ? 'bg-white/5' : 'bg-white'} border-white/10`}>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-1 flex items-center gap-2"><UserCheck size={12}/> Gestora</label><input className={`w-full ${isDark ? 'bg-[#252525] border-white/10 text-white' : 'bg-gray-50 border-gray-200 text-gray-800'} border rounded-xl p-3 text-sm outline-none focus:border-blue-600`} placeholder="Buscar por gestora..." value={searchGestor} onChange={e => setSearchGestor(e.target.value)} /></div>
-          <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-1 flex items-center gap-2"><Store size={12}/> Loja / Código</label><input className={`w-full ${isDark ? 'bg-[#252525] border-white/10 text-white' : 'bg-gray-50 border-gray-200 text-gray-800'} border rounded-xl p-3 text-sm outline-none focus:border-blue-600`} placeholder="Nome ou código..." value={searchLoja} onChange={e => setSearchLoja(e.target.value)} /></div>
-          <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-1 flex items-center gap-2"><Tag size={12}/> Canal</label><select className={`w-full ${isDark ? 'bg-[#252525] border-white/10 text-white' : 'bg-gray-50 border-gray-200 text-gray-800'} border rounded-xl p-3 text-sm outline-none focus:border-blue-600`} value={filterChannelId} onChange={e => setFilterChannelId(e.target.value)}><option value="all">Todos os Canais</option>{db.channels.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
-          <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-1 flex items-center gap-2"><Target size={12}/> Atingimento</label><select className={`w-full ${isDark ? 'bg-[#252525] border-white/10 text-white' : 'bg-gray-50 border-gray-200 text-gray-800'} border rounded-xl p-3 text-sm outline-none focus:border-blue-600`} value={filterRange} onChange={e => setFilterRange(e.target.value)}><option value="all">Todas as Faixas</option><option value="95-100">95% — 100%</option><option value="90-94">90% — 94%</option><option value="80-89">80% — 89%</option><option value="abaixo-79">Abaixo de 80%</option></select></div>
+    <div className="space-y-6 animate-in fade-in duration-300">
+      <div className="mb-2">
+        <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Histórico de Auditorias</h1>
+        <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Consulta completa aos registros realizados no sistema.</p>
+      </div>
+
+      <Card isDark={isDark} className="p-4 sm:p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="space-y-1.5"><label className={`text-xs font-medium flex items-center gap-1.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}><UserCheck size={14}/> Gestora Responsável</label><input className={`w-full border rounded-lg px-3 py-2 text-sm outline-none transition-colors ${isDark ? 'bg-slate-900 border-slate-700 text-slate-200 focus:border-blue-500' : 'bg-white border-slate-300 text-slate-900 focus:border-blue-600'}`} placeholder="Buscar nome..." value={searchGestor} onChange={e => setSearchGestor(e.target.value)} /></div>
+          <div className="space-y-1.5"><label className={`text-xs font-medium flex items-center gap-1.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}><Store size={14}/> Loja ou Código</label><input className={`w-full border rounded-lg px-3 py-2 text-sm outline-none transition-colors ${isDark ? 'bg-slate-900 border-slate-700 text-slate-200 focus:border-blue-500' : 'bg-white border-slate-300 text-slate-900 focus:border-blue-600'}`} placeholder="Nome ou código..." value={searchLoja} onChange={e => setSearchLoja(e.target.value)} /></div>
+          <div className="space-y-1.5"><label className={`text-xs font-medium flex items-center gap-1.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}><Tag size={14}/> Canal Comercial</label><select className={`w-full border rounded-lg px-3 py-2 text-sm outline-none transition-colors ${isDark ? 'bg-slate-900 border-slate-700 text-slate-200 focus:border-blue-500' : 'bg-white border-slate-300 text-slate-900 focus:border-blue-600'}`} value={filterChannelId} onChange={e => setFilterChannelId(e.target.value)}><option value="all">Todos os Canais</option>{db.channels.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+          <div className="space-y-1.5"><label className={`text-xs font-medium flex items-center gap-1.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}><Target size={14}/> Faixa de Atingimento</label><select className={`w-full border rounded-lg px-3 py-2 text-sm outline-none transition-colors ${isDark ? 'bg-slate-900 border-slate-700 text-slate-200 focus:border-blue-500' : 'bg-white border-slate-300 text-slate-900 focus:border-blue-600'}`} value={filterRange} onChange={e => setFilterRange(e.target.value)}><option value="all">Todas</option><option value="95-100">95% a 100%</option><option value="90-94">90% a 94%</option><option value="80-89">80% a 89%</option><option value="abaixo-79">Abaixo de 80%</option></select></div>
         </div>
       </Card>
-      <Card isDark={isDark}>
+
+      <Card isDark={isDark} className="p-0">
         <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className={`${isDark ? 'bg-white/5' : 'bg-gray-50'} text-gray-500 text-[10px] font-black uppercase tracking-widest`}>
-              <tr><th className="p-6">Data</th><th className="p-6">Loja</th><th className="p-6">Canal</th><th className="p-6">Score</th><th className="p-6 text-right">Ações</th></tr>
+          <table className="w-full text-left text-sm whitespace-nowrap">
+            <thead className={`${isDark ? 'bg-slate-800/50 text-slate-400' : 'bg-slate-50 text-slate-500'} font-medium`}>
+              <tr><th className="px-6 py-3">Data</th><th className="px-6 py-3">Unidade</th><th className="px-6 py-3">Canal</th><th className="px-6 py-3">Pontuação</th><th className="px-6 py-3 text-right">Ações</th></tr>
             </thead>
-            <tbody className={`divide-y ${isDark ? 'divide-white/5' : 'divide-gray-100'}`}>
+            <tbody className={`divide-y ${isDark ? 'divide-slate-800' : 'divide-slate-200'}`}>
               {evals.map(ev => { 
                 const store = db.stores.find(s => s.id == ev.storeId); 
                 const channel = db.channels.find(c => c.id == ev.channelId); 
                 return (
-                  <tr key={ev.id} className={`${isDark ? 'hover:bg-white/[0.03]' : 'hover:bg-gray-50/50'} group cursor-pointer transition-colors`} onClick={() => onShowReport(ev)}>
-                    <td className="p-6 font-bold text-gray-400">{new Date(ev.date).toLocaleDateString()}</td>
-                    <td className="p-6">
-                      <p className={`font-black uppercase italic tracking-tight ${isDark ? 'text-white' : 'text-gray-800'}`}>{store?.name}</p>
-                      <p className="text-[9px] text-gray-600 font-bold uppercase">{store?.code}</p>
+                  <tr key={ev.id} className={`${isDark ? 'hover:bg-slate-800/30' : 'hover:bg-slate-50/50'} group cursor-pointer transition-colors`} onClick={() => onShowReport(ev)}>
+                    <td className={`px-6 py-4 font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{new Date(ev.date).toLocaleDateString('pt-BR')}</td>
+                    <td className="px-6 py-4">
+                      <p className={`font-semibold ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>{store?.name}</p>
+                      <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>{store?.code}</p>
                     </td>
-                    <td className="p-6 text-gray-500 uppercase text-xs font-bold">{channel?.name}</td>
-                    <td className="p-6"><Badge type={ev.score >= 80 ? 'success' : 'danger'}>{Number(ev.score).toFixed(2)}%</Badge></td>
-                    <td className="p-6 text-right no-print"><button className="p-2 opacity-0 group-hover:opacity-100 hover:bg-white/10 rounded-lg text-gray-500 transition-opacity"><Printer size={18}/></button></td>
+                    <td className={`px-6 py-4 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{channel?.name}</td>
+                    <td className="px-6 py-4"><Badge isDark={isDark} type={ev.score >= 80 ? 'success' : 'danger'}>{Number(ev.score).toFixed(1)}%</Badge></td>
+                    <td className="px-6 py-4 text-right no-print">
+                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={(e) => { e.stopPropagation(); onShowReport(ev); }} title="Ver Detalhes" className={`p-1.5 rounded-md transition-colors ${isDark ? 'text-slate-400 hover:bg-slate-700 hover:text-slate-200' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'}`}>
+                          <FileText size={16}/>
+                        </button>
+                        {user.role === 'admin' && (
+                          <button onClick={(e) => handleDelete(e, ev.id)} title="Excluir Avaliação" className={`p-1.5 rounded-md transition-colors ${isDark ? 'text-slate-400 hover:bg-red-900/30 hover:text-red-400' : 'text-slate-500 hover:bg-red-50 hover:text-red-600'}`}>
+                            <Trash2 size={16}/>
+                          </button>
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 ); 
               })}
-              {evals.length === 0 && <tr><td colSpan="5" className="p-20 text-center text-gray-600 font-bold uppercase italic tracking-widest">Sem registos</td></tr>}
+              {evals.length === 0 && <tr><td colSpan="5" className="px-6 py-8 text-center text-slate-500">Nenhum registro localizado.</td></tr>}
             </tbody>
           </table>
         </div>
@@ -930,10 +1000,10 @@ function NewAuditView({ db, supabaseClient, onComplete, isDark }) {
   const [submitting, setSubmitting] = useState(false);
 
   const startAudit = () => {
-    if (!config.storeId) return alert("Selecione uma loja.");
+    if (!config.storeId) return alert("Selecione uma loja para iniciar.");
     const store = db.stores.find(s => s.id == config.storeId);
     const inds = db.indicators.filter(i => i.channelId == store.channelId);
-    if (!inds.length) return alert("Sem indicadores.");
+    if (!inds.length) return alert("Não existem indicadores cadastrados para o canal desta loja.");
     setActiveInd(inds[0].id);
     setStep(2);
   };
@@ -949,7 +1019,6 @@ function NewAuditView({ db, supabaseClient, onComplete, isDark }) {
     reader.onload = (event) => {
       const img = new Image();
       img.onload = () => {
-        // Redimensiona a imagem para evitar estouro de Payload no banco
         const canvas = document.createElement('canvas');
         const MAX_WIDTH = 800;
         const MAX_HEIGHT = 800;
@@ -973,7 +1042,6 @@ function NewAuditView({ db, supabaseClient, onComplete, isDark }) {
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
         
-        // Comprime para JPG reduzindo a qualidade e o peso
         const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
 
         setAnswers(prev => {
@@ -1025,7 +1093,7 @@ function NewAuditView({ db, supabaseClient, onComplete, isDark }) {
     const { data: newEval, error: evalError } = await supabaseClient.from('evaluations').insert({ store_id: config.storeId, channel_id: db.stores.find(s => s.id == config.storeId).channelId, evaluator, score: finalScore, date: config.date }).select().single();
     
     if (evalError) {
-      alert("Erro ao criar a avaliação principal: " + evalError.message);
+      alert("Erro ao criar a avaliação: " + evalError.message);
       setSubmitting(false);
       return;
     }
@@ -1036,7 +1104,7 @@ function NewAuditView({ db, supabaseClient, onComplete, isDark }) {
       if (details.length > 0) {
         const { error: detError } = await supabaseClient.from('evaluation_details').insert(details);
         if (detError) {
-          alert("Alerta: A auditoria foi salva, mas ocorreu um erro ao salvar as respostas ou imagens (podem estar muito pesadas). Erro: " + detError.message);
+          alert("Alerta: A auditoria foi salva, mas ocorreu um erro ao salvar as respostas ou imagens. Erro: " + detError.message);
         }
       }
       onComplete();
@@ -1045,17 +1113,26 @@ function NewAuditView({ db, supabaseClient, onComplete, isDark }) {
   };
 
   if (step === 1) return (
-    <div className="max-w-2xl mx-auto space-y-12 pt-20 animate-in slide-in-from-bottom-8 duration-500 text-left">
-      <div className="text-center"><h1 className="text-6xl font-black italic uppercase text-blue-500 tracking-tighter">Pagina do Avaliador</h1><p className="text-gray-500 font-bold uppercase tracking-[0.4em]"></p></div>
-      <Card isDark={isDark} className="p-10 space-y-8 text-left">
-        <div className="space-y-3 text-left">
-          <label className="text-xs font-black text-gray-500 uppercase tracking-widest">Unidade</label>
-          <select className={`w-full ${isDark ? 'bg-[#2a2a2a] border-white/5 text-white' : 'bg-gray-50 border-gray-200 text-gray-800'} border rounded-xl p-5 outline-none focus:ring-2 ring-blue-600 font-bold transition-all`} value={config.storeId} onChange={e => setConfig({...config, storeId: e.target.value})}>
-            <option value="">Selecione Unidade...</option>
+    <div className="max-w-xl mx-auto space-y-8 pt-12 animate-in slide-in-from-bottom-4 duration-300">
+      <div className="text-center">
+        <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Nova Auditoria</h1>
+        <p className={`text-sm mt-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Configure os parâmetros iniciais da inspeção de qualidade.</p>
+      </div>
+      <Card isDark={isDark} className="p-8 space-y-6">
+        <div className="space-y-2">
+          <label className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Unidade a ser inspecionada</label>
+          <select className={`w-full border rounded-lg px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500/50 transition-colors ${isDark ? 'bg-slate-900 border-slate-700 text-slate-200' : 'bg-white border-slate-300 text-slate-900'}`} value={config.storeId} onChange={e => setConfig({...config, storeId: e.target.value})}>
+            <option value="">Selecione uma Unidade...</option>
             {db.stores.map(s => <option key={s.id} value={s.id}>{s.code} — {s.name}</option>)}
           </select>
         </div>
-        <Button onClick={startAudit} className="w-full py-6 text-xl uppercase italic shadow-2xl" isDark={isDark}>Iniciar Checklist</Button>
+        <div className="space-y-2">
+          <label className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Data de Referência</label>
+          <input type="date" className={`w-full border rounded-lg px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500/50 transition-colors ${isDark ? 'bg-slate-900 border-slate-700 text-slate-200' : 'bg-white border-slate-300 text-slate-900'}`} value={config.date} onChange={e => setConfig({...config, date: e.target.value})} />
+        </div>
+        <div className="pt-4">
+          <Button onClick={startAudit} className="w-full py-3" isDark={isDark}>Avançar para o Formulário</Button>
+        </div>
       </Card>
     </div>
   );
@@ -1066,48 +1143,56 @@ function NewAuditView({ db, supabaseClient, onComplete, isDark }) {
   const questions = db.questions.filter(q => q.indicatorId == activeInd);
 
   return (
-    <div className="flex gap-10 relative pb-32 text-left">
-      <div className="w-80 space-y-3 hidden xl:block sticky top-32 h-fit">
+    <div className="flex flex-col lg:flex-row gap-8 relative pb-32">
+      <div className="w-full lg:w-64 space-y-2 lg:sticky lg:top-32 h-fit">
         {inds.map(ind => (
-          <button key={ind.id} onClick={() => setActiveInd(ind.id)} className={`w-full p-5 rounded-xl border text-left transition-all ${activeInd === ind.id ? 'bg-blue-600 border-blue-500 shadow-lg text-white' : `${isDark ? 'bg-[#181818] border-white/5 text-gray-500 hover:bg-white/5' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'}`}`}>
-            <span className="font-black uppercase italic block">{ind.name}</span>
+          <button key={ind.id} onClick={() => setActiveInd(ind.id)} className={`w-full px-4 py-3 rounded-lg border text-left text-sm font-medium transition-all ${activeInd === ind.id ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : `${isDark ? 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}`}>
+            {ind.name}
           </button>
         ))}
       </div>
-      <div className="flex-1 space-y-8">
-        <div className={`flex justify-between items-center p-8 border rounded-2xl ${isDark ? 'bg-white/5 border-white/5' : 'bg-white border-gray-100'} transition-colors`}>
-          <h2 className="text-4xl font-black italic uppercase text-blue-500">{currentInd?.name}</h2>
-          <div className="text-right"><p className="text-5xl font-black italic">{calculateScore().toFixed(2)}%</p></div>
+      <div className="flex-1 space-y-6">
+        <div className={`flex flex-col sm:flex-row justify-between items-start sm:items-center p-6 border rounded-xl shadow-sm ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+          <div>
+            <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{currentInd?.name}</h2>
+            <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Preencha todos os itens abaixo</p>
+          </div>
+          <div className="mt-4 sm:mt-0 text-right">
+            <span className={`text-xs font-medium uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Score Parcial</span>
+            <p className={`text-3xl font-bold ${calculateScore() >= 80 ? 'text-emerald-500' : 'text-amber-500'}`}>{calculateScore().toFixed(1)}%</p>
+          </div>
         </div>
-        <div className="space-y-6">
+        <div className="space-y-4">
           {questions.map(q => (
-            <Card key={q.id} isDark={isDark} className="p-8 border-white/10">
-              <div className="flex justify-between items-start gap-4 mb-8">
-                <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{q.text}</p>
-                <Badge type={q.severity === 'gravissima' ? 'danger' : 'neutral'}>{q.severity}</Badge>
+            <Card key={q.id} isDark={isDark} className="p-6">
+              <div className="flex justify-between items-start gap-4 mb-6">
+                <p className={`text-base font-medium leading-relaxed ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>{q.text}</p>
+                <Badge isDark={isDark} type={q.severity === 'gravissima' ? 'danger' : q.severity === 'grave' ? 'warning' : 'neutral'}>{q.severity}</Badge>
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <AnswerBtn active={answers[q.id]?.value === 'conforme'} onClick={() => handleAnswer(q.id, 'conforme')} label="Conforme" variant="success" isDark={isDark} />
                 <AnswerBtn active={answers[q.id]?.value === 'inconforme'} onClick={() => handleAnswer(q.id, 'inconforme')} label="Inconforme" variant="danger" isDark={isDark} />
-                <AnswerBtn active={answers[q.id]?.value === 'na'} onClick={() => handleAnswer(q.id, 'na')} label="N/A" variant="neutral" isDark={isDark} />
+                <AnswerBtn active={answers[q.id]?.value === 'na'} onClick={() => handleAnswer(q.id, 'na')} label="Não se Aplica" variant="neutral" isDark={isDark} />
               </div>
               {answers[q.id]?.value === 'inconforme' && (
-                <div className={`mt-8 space-y-4 pt-4 border-t ${isDark ? 'border-white/5' : 'border-gray-100'} animate-in slide-in-from-top-2`}>
+                <div className={`mt-6 space-y-4 pt-6 border-t ${isDark ? 'border-slate-800' : 'border-slate-100'} animate-in slide-in-from-top-2`}>
                   <label className="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" className="w-5 h-5 accent-yellow-500" checked={answers[q.id]?.cp} onChange={e => handleAnswer(q.id, 'inconforme', e.target.checked, answers[q.id]?.comment)}/>
-                    <span className="font-bold text-yellow-500 uppercase text-xs">CP Validado</span>
+                    <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-amber-500 focus:ring-amber-500" checked={answers[q.id]?.cp} onChange={e => handleAnswer(q.id, 'inconforme', e.target.checked, answers[q.id]?.comment)}/>
+                    <span className={`text-sm font-medium ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>Plano de Ação/CP Validado?</span>
                   </label>
-                  <textarea placeholder="Observações..." className={`w-full ${isDark ? 'bg-black border-white/10 text-white' : 'bg-gray-50 border-gray-200 text-gray-900'} border rounded-xl p-4 text-sm outline-none transition-colors`} value={answers[q.id]?.comment} onChange={e => handleAnswer(q.id, 'inconforme', answers[q.id]?.cp, e.target.value)} />
-                  <Button variant="outline" onClick={() => document.getElementById(`file-q-${q.id}`).click()} className="text-xs py-2" isDark={isDark}><Camera size={16}/> Anexar Foto</Button>
+                  <textarea placeholder="Insira observações ou evidências adicionais..." className={`w-full min-h-[100px] border rounded-lg p-3 text-sm outline-none transition-colors ${isDark ? 'bg-slate-900 border-slate-700 text-slate-200 focus:border-blue-500' : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-blue-600'}`} value={answers[q.id]?.comment} onChange={e => handleAnswer(q.id, 'inconforme', answers[q.id]?.cp, e.target.value)} />
+                  <Button variant="outline" onClick={() => document.getElementById(`file-q-${q.id}`).click()} className="text-xs" isDark={isDark}><Camera size={14}/> Anexar Evidência</Button>
                   <input type="file" id={`file-q-${q.id}`} className="hidden" accept="image/*" onChange={(e) => handleFileUpload(q.id, e)} />
-                  <div className="flex gap-2 overflow-x-auto">{answers[q.id]?.media?.map((img, i) => <img key={i} src={img.url} className={`w-16 h-16 object-cover rounded-lg border ${isDark ? 'border-white/10' : 'border-gray-200'}`} />)}</div>
+                  <div className="flex gap-3 overflow-x-auto pt-2">{answers[q.id]?.media?.map((img, i) => <img key={i} src={img.url} className={`w-20 h-20 object-cover rounded-lg border ${isDark ? 'border-slate-700' : 'border-slate-200'}`} />)}</div>
                 </div>
               )}
             </Card>
           ))}
         </div>
-        <div className="pt-10 flex justify-end">
-          <Button disabled={submitting} onClick={submitAudit} className="px-14 py-6 bg-green-600 text-xl font-black italic uppercase text-white">Finalizar Inspeção</Button>
+        <div className="pt-8 flex justify-end">
+          <Button disabled={submitting} onClick={submitAudit} className="px-8 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold">
+            <Save size={18} /> Salvar Avaliação
+          </Button>
         </div>
       </div>
     </div>
@@ -1118,36 +1203,41 @@ function NewAuditView({ db, supabaseClient, onComplete, isDark }) {
 
 function AnswerBtn({ active, label, onClick, variant, isDark }) {
   const styles = {
-    success: active ? 'bg-green-600 text-white border-green-500 shadow-md' : `bg-transparent ${isDark ? 'border-white/10 text-gray-500 hover:border-green-600/50' : 'border-gray-200 text-gray-400 hover:border-green-600/50'}`,
-    danger: active ? 'bg-red-600 text-white border-red-500 shadow-md' : `bg-transparent ${isDark ? 'border-white/10 text-gray-500 hover:border-green-600/50' : 'border-gray-200 text-gray-400 hover:border-green-600/50'}`,
-    neutral: active ? 'bg-gray-600 text-white border-gray-600 shadow-md' : `bg-transparent ${isDark ? 'border-white/10 text-gray-500' : 'border-gray-200 text-gray-400'}`
+    success: active 
+      ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm' 
+      : `bg-transparent ${isDark ? 'border-slate-700 text-slate-400 hover:border-emerald-600/50 hover:text-emerald-400' : 'border-slate-300 text-slate-600 hover:border-emerald-600/50 hover:text-emerald-600'}`,
+    danger: active 
+      ? 'bg-red-600 text-white border-red-600 shadow-sm' 
+      : `bg-transparent ${isDark ? 'border-slate-700 text-slate-400 hover:border-red-600/50 hover:text-red-400' : 'border-slate-300 text-slate-600 hover:border-red-600/50 hover:text-red-600'}`,
+    neutral: active 
+      ? 'bg-slate-600 text-white border-slate-600 shadow-sm' 
+      : `bg-transparent ${isDark ? 'border-slate-700 text-slate-400 hover:bg-slate-800' : 'border-slate-300 text-slate-600 hover:bg-slate-50'}`
   };
-  return <button onClick={onClick} className={`px-5 py-4 rounded-xl text-[10px] font-black uppercase border transition-all ${styles[variant]}`}>{label}</button>;
+  return <button onClick={onClick} className={`px-4 py-3.5 rounded-lg text-sm font-medium border transition-colors ${styles[variant]}`}>{label}</button>;
 }
 
 function StatCard({ title, value, icon, subtitle, isDark }) { 
   return (
-    <Card isDark={isDark} className="p-8 relative overflow-hidden group text-left">
-      <div className="flex justify-between items-start mb-6">
-        <div className={`p-3 rounded-xl border ${isDark ? 'bg-black border-white/5' : 'bg-gray-50 border-gray-100'} shadow-inner`}>{icon}</div>
-        <span className="text-[10px] uppercase font-black text-gray-500 tracking-widest">{title}</span>
+    <Card isDark={isDark} className="p-6 relative text-left">
+      <div className="flex justify-between items-start mb-4">
+        <div className={`p-2.5 rounded-lg border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-100'}`}>{icon}</div>
       </div>
-      <div className={`text-5xl font-black mb-2 italic tracking-tighter ${isDark ? 'text-white' : 'text-gray-900'}`}>{value}</div>
-      <div className="text-[10px] text-gray-500 font-black uppercase tracking-widest">{subtitle}</div>
+      <div className={`text-3xl font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>{value}</div>
+      <div className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{title}</div>
+      {subtitle && <div className={`text-xs mt-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{subtitle}</div>}
     </Card>
   ); 
 }
 
-// --- VISUALIZAÇÃO DE DOSSIÊ MELHORADA E CORRIGIDA ---
+// --- VISUALIZAÇÃO DE DOSSIÊ ---
 
 function ReportContent({ evaluation, db, isDark = true, onExpandImage }) {
   const store = db.stores.find(s => s.id == evaluation.storeId);
   const manager = db.managers.find(m => m.id == store?.managerId);
-  const textColor = isDark ? 'text-white' : 'text-gray-900';
-  const borderColor = isDark ? 'border-white/5' : 'border-gray-200';
-  const bgCard = isDark ? 'bg-white/5' : 'bg-white';
+  const textColor = isDark ? 'text-slate-200' : 'text-slate-800';
+  const borderColor = isDark ? 'border-slate-800' : 'border-slate-200';
+  const bgCard = isDark ? 'bg-slate-800/50' : 'bg-slate-50';
 
-  // Agrupa os detalhes da avaliação por Indicador para uma visualização limpa
   const groupedDetails = {};
   evaluation.details?.forEach(det => {
     const q = db.questions.find(q => q.id == det.questionId);
@@ -1155,123 +1245,103 @@ function ReportContent({ evaluation, db, isDark = true, onExpandImage }) {
     if (!groupedDetails[indId]) {
       groupedDetails[indId] = [];
     }
-    groupedDetails[indId].push({ det, q: q || { text: 'Pergunta não encontrada ou removida', severity: 'neutral' } });
+    groupedDetails[indId].push({ det, q: q || { text: 'Pergunta não encontrada', severity: 'neutral' } });
   });
 
   return (
-    <div className={`p-8 sm:p-12 space-y-10 ${textColor} text-left transition-colors`}>
-      {/* Cabeçalho do Dossiê */}
-      <div className={`grid grid-cols-2 gap-8 border-b ${borderColor} pb-8 text-left`}>
-        <div className="space-y-4 text-left">
+    <div className={`space-y-8 ${textColor} text-left`}>
+      <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 border-b ${borderColor} pb-8`}>
+        <div className="space-y-4">
           <div>
-            <p className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Unidade</p>
-            <p className="text-xl font-black uppercase italic text-blue-500">{store?.name || 'Desconhecida'}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Unidade Avaliada</p>
+            <p className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-0.5">{store?.name || 'Desconhecida'}</p>
           </div>
           <div>
-            <p className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Data da Auditoria</p>
-            <p className="text-lg font-black">{new Date(evaluation.date).toLocaleDateString('pt-BR')}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Data da Realização</p>
+            <p className="text-base font-medium mt-0.5">{new Date(evaluation.date).toLocaleDateString('pt-BR')}</p>
           </div>
         </div>
-        <div className="space-y-4 text-right">
+        <div className="space-y-4 md:text-right">
           <div>
-            <p className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Gestora Responsável</p>
-            <p className="text-lg font-black">{manager?.name || 'Não atribuída'}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Responsável pela Unidade</p>
+            <p className="text-base font-medium mt-0.5">{manager?.name || 'Não informada'}</p>
           </div>
           <div>
-            <p className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Avaliador</p>
-            <p className="text-lg font-black">{evaluation.evaluator}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Avaliador VQ</p>
+            <p className="text-base font-medium mt-0.5">{evaluation.evaluator}</p>
           </div>
         </div>
       </div>
 
-      {/* Cartões de Pontuação */}
-      <div className="grid grid-cols-3 gap-6">
-        <div className={`${bgCard} p-6 rounded-2xl text-center border ${borderColor} shadow-sm`}>
-          <p className="text-[10px] text-gray-500 font-black uppercase mb-1">Score Final</p>
-          <p className={`text-5xl font-black italic ${evaluation.score >= 80 ? 'text-green-500' : 'text-red-500'}`}>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className={`${bgCard} p-5 rounded-xl border ${borderColor}`}>
+          <p className="text-xs text-slate-500 font-semibold uppercase mb-1">Score Obtido</p>
+          <p className={`text-3xl font-bold ${evaluation.score >= 80 ? 'text-emerald-500' : 'text-red-500'}`}>
             {Number(evaluation.score).toFixed(2)}%
           </p>
         </div>
-        <div className={`${bgCard} p-6 rounded-2xl text-center border ${borderColor} shadow-sm`}>
-          <p className="text-[10px] text-gray-500 font-black uppercase mb-1">Status</p>
-          <p className="text-lg font-black uppercase mt-2">{evaluation.score >= 80 ? 'Aprovado' : 'Reprovado'}</p>
+        <div className={`${bgCard} p-5 rounded-xl border ${borderColor}`}>
+          <p className="text-xs text-slate-500 font-semibold uppercase mb-1">Resultado</p>
+          <p className="text-xl font-bold mt-1">{evaluation.score >= 80 ? 'Aprovado' : 'Requer Atenção'}</p>
         </div>
-        <div className={`${bgCard} p-6 rounded-2xl text-center border ${borderColor} shadow-sm`}>
-          <p className="text-[10px] text-gray-500 font-black uppercase mb-1">Deduções</p>
-          <p className="text-lg font-black uppercase mt-2">{(100 - evaluation.score).toFixed(2)} pts</p>
+        <div className={`${bgCard} p-5 rounded-xl border ${borderColor}`}>
+          <p className="text-xs text-slate-500 font-semibold uppercase mb-1">Penalizações</p>
+          <p className="text-xl font-bold mt-1">{(100 - evaluation.score).toFixed(2)} pts</p>
         </div>
       </div>
 
-      {/* Checklist Detalhado Agrupado */}
-      <div className="space-y-8 text-left">
-        <h4 className="text-xl font-black uppercase italic border-l-4 border-blue-600 pl-4 text-left">Checklist Detalhado</h4>
+      <div className="space-y-6">
+        <h4 className="text-lg font-bold border-l-4 border-blue-600 pl-3">Detalhamento dos Indicadores</h4>
         
         {Object.keys(groupedDetails).length === 0 && (
-          <p className="text-gray-500 italic">Nenhum detalhe foi encontrado para esta auditoria.</p>
+          <p className="text-slate-500 italic">Nenhum detalhe técnico foi recuperado para este relatório.</p>
         )}
 
         {Object.keys(groupedDetails).map(indId => {
           const indicator = db.indicators.find(i => i.id == indId);
-          const indName = indicator ? indicator.name : 'Outros / Removidos';
+          const indName = indicator ? indicator.name : 'Removidos do Sistema';
 
           return (
-            <div key={indId} className="space-y-4 mt-6">
-              <h5 className={`text-lg font-black italic uppercase ${isDark ? 'text-blue-400' : 'text-blue-600'} border-b ${borderColor} pb-2`}>
+            <div key={indId} className="space-y-3 mt-4">
+              <h5 className={`text-sm font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400 border-slate-800' : 'text-slate-500 border-slate-200'} border-b pb-2`}>
                 {indName}
               </h5>
 
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {groupedDetails[indId].map(({det, q}) => {
-                  
-                  // Conversão Robusta de Mídia
                   let mediaArray = [];
                   try {
-                    if (Array.isArray(det.media)) {
-                      mediaArray = det.media;
-                    } else if (typeof det.media === 'string') {
-                      if (det.media.startsWith('[')) {
-                        mediaArray = JSON.parse(det.media);
-                      } else if (det.media.trim() !== '') {
-                        mediaArray = [{ url: det.media }];
-                      }
+                    if (Array.isArray(det.media)) mediaArray = det.media;
+                    else if (typeof det.media === 'string') {
+                      if (det.media.startsWith('[')) mediaArray = JSON.parse(det.media);
+                      else if (det.media.trim() !== '') mediaArray = [{ url: det.media }];
                     }
-                  } catch (e) {
-                    console.error("Erro ao parsear media", e);
-                  }
+                  } catch (e) { }
 
                   return (
-                    <div key={det.id} className={`${bgCard} border ${borderColor} rounded-xl p-6 break-inside-avoid shadow-sm`}>
-                      <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
-                        <p className="font-bold text-lg leading-tight flex-1">{q.text}</p>
-                        
+                    <div key={det.id} className={`${bgCard} border ${borderColor} rounded-lg p-5`}>
+                      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                        <p className="font-medium text-sm leading-relaxed flex-1">{q.text}</p>
                         <div className="flex items-center gap-2 shrink-0">
-                          {/* Verifica CP validado */}
-                          {det.cpValidated && (
-                            <Badge type="warning">CP Validado</Badge>
-                          )}
-                          <Badge type={det.answer === 'conforme' ? 'success' : det.answer === 'inconforme' ? 'danger' : 'neutral'}>
-                            {det.answer === 'na' ? 'N/A' : det.answer}
+                          {det.cpValidated && <Badge isDark={isDark} type="warning">Corrigido</Badge>}
+                          <Badge isDark={isDark} type={det.answer === 'conforme' ? 'success' : det.answer === 'inconforme' ? 'danger' : 'neutral'}>
+                            {det.answer === 'na' ? 'N/A' : det.answer === 'conforme' ? 'Conforme' : 'Não Conforme'}
                           </Badge>
                         </div>
                       </div>
 
-                      {/* Caixa de Comentários Aprimorada */}
                       {det.comment && (
-                        <div className={`mt-4 ${isDark ? 'bg-blue-600/10' : 'bg-blue-50'} p-4 rounded-xl border ${isDark ? 'border-blue-600/20' : 'border-blue-200'} flex gap-3 items-start`}>
-                          <Info size={18} className="text-blue-500 shrink-0 mt-0.5"/>
-                          <p className="text-sm italic font-medium leading-relaxed">"{det.comment}"</p>
+                        <div className={`mt-3 ${isDark ? 'bg-slate-900' : 'bg-white'} p-3 rounded-md border ${borderColor} flex gap-2 items-start`}>
+                          <Info size={16} className="text-slate-400 shrink-0 mt-0.5"/>
+                          <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{det.comment}</p>
                         </div>
                       )}
 
-                      {/* Exibição de Mídias/Imagens */}
                       {mediaArray && mediaArray.length > 0 && (
-                        <div className="mt-4 flex flex-wrap gap-3">
+                        <div className="mt-3 flex flex-wrap gap-2">
                           {mediaArray.map((img, i) => (
-                            <div key={i} className="relative group/img cursor-zoom-in" onClick={() => onExpandImage(img.url || img)}>
-                              <img src={typeof img === 'string' ? img : img.url} className={`w-28 h-28 object-cover rounded-lg border ${isDark ? 'border-white/10' : 'border-gray-200'} shadow-md hover:border-blue-500 transition-all`} />
-                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 flex items-center justify-center rounded-lg transition-opacity">
-                                <Maximize2 size={20} className="text-white" />
-                              </div>
+                            <div key={i} className="relative group cursor-zoom-in" onClick={() => onExpandImage(img.url || img)}>
+                              <img src={typeof img === 'string' ? img : img.url} className={`w-20 h-20 object-cover rounded-md border ${borderColor} hover:opacity-80 transition-opacity`} />
                             </div>
                           ))}
                         </div>
@@ -1291,8 +1361,8 @@ function ReportContent({ evaluation, db, isDark = true, onExpandImage }) {
 function FormInput({ label, isDark, ...props }) { 
   return (
     <div className="space-y-1 text-left">
-      <label className={`text-[10px] font-black uppercase tracking-widest ml-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{label}</label>
-      <input className={`w-full ${isDark ? 'bg-[#252525] border-white/10 text-white placeholder-gray-700' : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-300'} border rounded-xl p-4 text-sm outline-none focus:border-blue-600 transition-all`} {...props} />
+      <label className={`text-xs font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{label}</label>
+      <input className={`w-full border rounded-lg px-3 py-2.5 text-sm outline-none transition-colors ${isDark ? 'bg-slate-900 border-slate-700 text-slate-200 focus:border-blue-500' : 'bg-white border-slate-300 text-slate-900 focus:border-blue-600'}`} {...props} />
     </div>
   ); 
 }
@@ -1300,8 +1370,8 @@ function FormInput({ label, isDark, ...props }) {
 function FormSelect({ label, children, isDark, ...props }) { 
   return (
     <div className="space-y-1 text-left">
-      <label className={`text-[10px] font-black uppercase tracking-widest ml-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{label}</label>
-      <select className={`w-full ${isDark ? 'bg-[#252525] border-white/10 text-white' : 'bg-gray-50 border-gray-200 text-gray-900'} border rounded-xl p-4 text-sm outline-none focus:border-blue-600 transition-all cursor-pointer`} {...props}>{children}</select>
+      <label className={`text-xs font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{label}</label>
+      <select className={`w-full border rounded-lg px-3 py-2.5 text-sm outline-none cursor-pointer transition-colors ${isDark ? 'bg-slate-900 border-slate-700 text-slate-200 focus:border-blue-500' : 'bg-white border-slate-300 text-slate-900 focus:border-blue-600'}`} {...props}>{children}</select>
     </div>
   ); 
 }
@@ -1310,15 +1380,16 @@ function LoginView({ onLogin, isDark }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   return (
-    <div className={`h-screen w-full flex items-center justify-center relative overflow-hidden ${isDark ? 'bg-black text-white' : 'bg-gray-100 text-gray-900'} transition-colors duration-500`}>
-      <div className="absolute inset-0 opacity-40 blur-sm scale-110"><img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=2070&auto=format&fit=crop" className="w-full h-full object-cover" /></div>
-      <div className={`z-10 ${isDark ? 'bg-black/85 border-white/10' : 'bg-white/85 border-gray-200'} p-12 rounded-3xl border backdrop-blur-2xl w-full max-w-md shadow-2xl text-center transition-colors`}>
-        <div className="inline-flex w-20 h-20 bg-blue-600 rounded-2xl items-center justify-center font-black text-4xl italic mb-6 rotate-3 shadow-2xl shadow-blue-600/30 text-white">VQ</div>
-        <h1 className="text-4xl font-black mb-8 uppercase italic tracking-tighter text-center">Portal VQ</h1>
-        <form onSubmit={(e) => { e.preventDefault(); onLogin(email, password); }} className="space-y-6">
-          <input required type="email" className={`w-full ${isDark ? 'bg-[#1a1a1a] border-white/10' : 'bg-gray-50 border-gray-200'} border rounded-xl p-5 text-left outline-none transition-all`} placeholder="E-mail" value={email} onChange={e => setEmail(e.target.value)} />
-          <input required type="password" className={`w-full ${isDark ? 'bg-[#1a1a1a] border-white/10' : 'bg-gray-50 border-gray-200'} border rounded-xl p-5 text-left outline-none transition-all`} placeholder="Senha" value={password} onChange={e => setPassword(e.target.value)} />
-          <Button className="w-full py-5 text-xl uppercase italic shadow-xl shadow-blue-600/10" isDark={isDark}>Entrar</Button>
+    <div className={`h-screen w-full flex items-center justify-center transition-colors duration-500 ${isDark ? 'bg-slate-950 text-slate-200' : 'bg-slate-50 text-slate-900'}`}>
+      <div className={`z-10 p-8 sm:p-10 rounded-2xl w-full max-w-md shadow-xl text-center border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+        <div className="inline-flex w-14 h-14 bg-blue-600 rounded-xl items-center justify-center font-bold text-2xl text-white mb-6">VQ</div>
+        <h1 className="text-2xl font-bold mb-2 text-center">Acesso ao Portal</h1>
+        <p className={`text-sm mb-8 text-center ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Entre com suas credenciais corporativas.</p>
+        
+        <form onSubmit={(e) => { e.preventDefault(); onLogin(email, password); }} className="space-y-4">
+          <input required type="email" className={`w-full border rounded-lg px-4 py-3 text-sm outline-none transition-colors ${isDark ? 'bg-slate-950 border-slate-700 text-slate-200 focus:border-blue-500' : 'bg-slate-50 border-slate-200 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20'}`} placeholder="Seu e-mail" value={email} onChange={e => setEmail(e.target.value)} />
+          <input required type="password" className={`w-full border rounded-lg px-4 py-3 text-sm outline-none transition-colors ${isDark ? 'bg-slate-950 border-slate-700 text-slate-200 focus:border-blue-500' : 'bg-slate-50 border-slate-200 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20'}`} placeholder="Sua senha" value={password} onChange={e => setPassword(e.target.value)} />
+          <Button className="w-full py-3 text-base" isDark={isDark}>Acessar Plataforma</Button>
         </form>
       </div>
     </div>
